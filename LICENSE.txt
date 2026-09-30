@@ -1,0 +1,44 @@
+UML Tool License Agreement (Non-Commercial Use)
+
+Copyright (c) 2013 petercai
+
+1. Grant of License
+
+Permission is hereby granted to any individual or organization to use, copy,
+modify, and distribute this software for personal, educational, or other
+non-commercial purposes, free of charge.
+
+2. Commercial Use Restriction
+
+Commercial use of this software is strictly prohibited without a valid
+commercial license obtained from the author.
+
+Commercial use includes, but is not limited to:
+
+- Use within a for-profit organization
+- Use in a production environment
+- Offering the software as a service (SaaS)
+- Integration into a paid product or service
+- Internal business usage
+
+3. Commercial License
+
+Organizations or individuals wishing to use this software for commercial
+purposes must obtain a separate commercial license.
+
+For commercial licensing inquiries, please contact:
+petercaica@hotmail.com
+
+4. Redistribution
+
+Redistribution of the software is permitted for non-commercial purposes only,
+provided that this license is included.
+
+5. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED.
+
+6. Termination
+
+Violation of this license will result in automatic termination of rights.
