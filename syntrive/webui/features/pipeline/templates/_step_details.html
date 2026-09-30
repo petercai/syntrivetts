@@ -1,0 +1,16 @@
+<div>
+  <h3>{{ t('pipeline.state_h') }}</h3>
+  <span>{{ t('state.' ~ selected.state.value) }}</span>
+</div>
+<div>
+  <h3>{{ t('pipeline.folder_h') }}</h3>
+  <span class="mono" style="overflow-wrap:anywhere">{{ row.process_dir }}</span>
+</div>
+{% if can_restart %}
+<div>
+  <h3>{{ t('pipeline.restart_h') }}</h3>
+  <p style="margin:0 0 8px">{{ t('pipeline.restart_about') }}</p>
+  <button class="btn" type="button" hx-post="/api/v1/pipeline/{{ job_id }}/restart" hx-vals='{{ {"step": step.value}|tojson }}'
+          hx-confirm="{{ t('pipeline.restart_confirm', step=t('step.' ~ step.value)) }}">{{ t('pipeline.restart', step=t('step.' ~ step.value)) }}</button>
+</div>
+{% endif %}

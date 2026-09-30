@@ -1,0 +1,71 @@
+{% extends "shared/base.html" %}
+{% block title %}{{ t('tools.title') }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/tools/tools.css">
+<script src="/static/tools/tools.js" defer></script>
+{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t('tools.title') }}</h1>
+    <p class="lede">{{ t('tools.lede') }}</p>
+  </div>
+  <div class="btn-row">
+    <form hx-post="/api/v1/tools/upload" hx-encoding="multipart/form-data" hx-indicator="#upload-busy" class="btn-row">
+      <span id="upload-busy" class="htmx-indicator run-state muted"><span class="spinner" aria-hidden="true"></span>{{ t('tools.uploading') }}</span>
+      <label class="btn" for="tools-upload" tabindex="0" title="{{ t('tools.upload_hint') }}"
+             onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">{{ t('tools.upload') }}</label>
+      <input id="tools-upload" class="visually-hidden" type="file" name="file" accept=".db,.sql"
+             onchange="if (this.files.length) this.form.requestSubmit()">
+    </form>
+    <button class="btn" type="button" hx-post="/api/v1/tools/backup" title="{{ t('tools.backup_hint') }}">{{ t('tools.backup') }}</button>
+    <button class="btn btn-primary" type="button" hx-get="/api/v1/tools/export" hx-target="#dialog-host">{{ t('tools.export') }}</button>
+  </div>
+</div>
+
+{% if notice %}
+{% set parts = notice.split(':') %}
+<div class="flash flash-ok" role="status"><p>{{ t('tools.notice_' ~ parts[0], a=parts[1] if parts|length > 1 else '', b=parts[2] if parts|length > 2 else '', c=parts[3] if parts|length > 3 else '') }}</p></div>
+{% endif %}
+
+<div class="explain">
+  <div class="panel explain-card"><strong>{{ t('tools.kind_export_title') }}</strong><p>{{ t('tools.kind_export_text') }}</p></div>
+  <div class="panel explain-card"><strong>{{ t('tools.kind_backup_title') }}</strong><p>{{ t('tools.kind_backup_text') }}</p></div>
+</div>
+
+<section class="panel ledger" aria-labelledby="ledger-title">
+  <div class="ledger-head">
+    <h2 id="ledger-title">{{ t('tools.ledger_title') }}</h2>
+    <span class="sub">{{ t('tools.ledger_count', n=files|length) }}</span>
+  </div>
+  {% if not files %}
+  <p class="empty">{{ t('tools.ledger_empty') }}</p>
+  {% else %}
+  <div class="f-row f-head"><span>{{ t('tools.col_file') }}</span><span>{{ t('tools.col_kind') }}</span><span class="right">{{ t('tools.col_size') }}</span><span>{{ t('tools.col_created') }}</span><span>{{ t('tools.col_contains') }}</span><span></span></div>
+  {% for f in files %}
+  {% set is_export = f.path.suffix == '.db' %}
+  {% set base = '/api/v1/tools/files/' ~ f.path.name|urlencode %}
+  <div class="f-row">
+    <span class="num ellipsis" title="{{ f.path.name }}">{{ f.path.name }}</span>
+    <span class="kind {{ 'is-export' if is_export else 'is-backup' }}">{{ t('tools.kind_export') if is_export else t('tools.kind_backup') }}</span>
+    <span class="num right">{{ f.size_bytes|size }}</span>
+    <span class="num sub">{{ f.modified|when }}</span>
+    {% if is_export %}
+    <span class="{{ 'error-text' if f.error else 'sub' }} ellipsis" title="{{ f.error }}">{{ t('tools.unreadable') if f.error else t('tools.contains_export', books=f.books|length, jobs=f.job_count) }}</span>
+    {% else %}
+    <span class="sub">{{ t('tools.contains_backup', voices=f.voice_count, tags=f.tag_count) }}</span>
+    {% endif %}
+    <span class="f-actions">
+      {% if is_export %}
+      <button class="btn btn-sm" type="button" hx-get="{{ base }}/import" hx-target="#dialog-host" {% if f.error %}disabled{% endif %}>{{ t('tools.import') }}</button>
+      {% else %}
+      <button class="btn btn-sm" type="button" hx-get="{{ base }}/restore" hx-target="#dialog-host">{{ t('tools.restore') }}</button>
+      {% endif %}
+      <a class="btn btn-sm btn-quiet" href="{{ base }}" download>{{ t('tools.download') }}</a>
+      <button class="btn btn-sm btn-quiet danger-text" type="button" hx-post="{{ base }}/delete" hx-confirm="{{ t('tools.delete_confirm', name=f.path.name) }}">{{ t('tools.delete') }}</button>
+    </span>
+  </div>
+  {% endfor %}
+  {% endif %}
+</section>
+{% endblock %}

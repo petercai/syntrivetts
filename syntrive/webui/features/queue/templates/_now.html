@@ -1,0 +1,32 @@
+<section id="queue-now" class="panel now{{ ' is-running' if now.running }}" aria-live="polite"
+         {% if now.running %}hx-get="/api/v1/queue/now" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+  {% if now.running %}
+  <div class="now-head">
+    <span class="live-dot" aria-hidden="true"></span>
+    <strong>{{ t('queue.now_running') }}</strong>
+    <span class="sub">
+      {% if now.runner %}{{ t('queue.now_runner', host=now.runner.hostname, pid=now.runner.pid) }}{% elif now.process %}{{ t('queue.now_process', pid=now.process.pid, since=now.process.started_at) }}{% endif %}
+    </span>
+  </div>
+  {% if now.live and now.progress %}
+  {% set p = now.progress %}
+  <div class="now-where">
+    <strong class="cjk">{{ p.book or '' }}</strong>
+    {% if p.book_total %}<span class="num sub">{{ t('queue.now_position', book=p.book_seq, books=p.book_total, chapter=p.chapter_seq, chapters=p.chapter_total) }}</span>{% endif %}
+  </div>
+  <div class="now-line">
+    {% if p.fraction is not none %}<span class="now-bar"><span style="width: {{ (p.fraction * 100)|round(1) }}%"></span></span>
+    <span class="num">{{ t('queue.now_line', n=p.line_idx, total=p.line_total) }}</span>{% endif %}
+    <span class="now-text cjk">{% for piece in now_line %}{% if piece.marker %}<span class="chip {{ 'chip-voice' if piece.text.startswith('voice') else 'chip-mark' }}">{{ piece.text|replace(':', ' ') }}</span>{% else %}{{ piece.text }}{% endif %}{% endfor %}</span>
+  </div>
+  {% else %}
+  <p class="sub" style="margin:0">{{ t('queue.now_between') }}</p>
+  {% endif %}
+  {% else %}
+  <div class="now-head">
+    <span class="idle-dot" aria-hidden="true"></span>
+    <strong>{{ t('queue.now_idle') }}</strong>
+    {% if now.progress %}<span class="sub">{{ t('queue.now_last', event=now.progress.event, at=now.progress.at[:19]|replace('T', ' ')) }}{% if now.progress.error %} · {{ now.progress.error }}{% endif %}</span>{% endif %}
+  </div>
+  {% endif %}
+</section>

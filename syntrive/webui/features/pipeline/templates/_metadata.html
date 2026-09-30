@@ -1,0 +1,46 @@
+{% set job_id = row.job_id %}
+{% if notice in ('saved', 'unchanged') %}<div class="flash flash-ok" role="status"><p>{{ t('pipeline.notice_' ~ notice) }}</p></div>{% endif %}
+{% if not meta %}
+<p class="empty">{{ t('pipeline.refused_not_found') }}</p>
+{% else %}
+<form id="meta-form" class="meta" hx-post="/api/v1/pipeline/{{ job_id }}/metadata" data-dirty-form>
+  <fieldset class="meta-fields" {% if row.archived %}disabled{% endif %}>
+    <legend class="visually-hidden">{{ t('pipeline.tab_metadata') }}</legend>
+    <section class="meta-form">
+      <label class="tts-field"><span>{{ t('pipeline.meta_title') }}</span><input class="cjk" type="text" name="title" value="{{ meta.title }}" required></label>
+      <label class="tts-field"><span>{{ t('pipeline.meta_author') }}</span><input class="cjk" type="text" name="author" value="{{ meta.author }}"></label>
+      <label class="tts-field meta-lang"><span>{{ t('pipeline.meta_language') }}</span>
+        <select name="language">
+          {% if meta.language not in languages %}<option value="{{ meta.language }}" selected>{{ meta.language or '—' }}</option>{% endif %}
+          {% for code in languages %}<option value="{{ code }}" {% if code == meta.language %}selected{% endif %}>{{ code }}</option>{% endfor %}
+        </select>
+      </label>
+      <p class="sub" style="margin:0">{{ t('pipeline.meta_language_note') }}</p>
+      {% if not row.archived %}<div class="btn-row"><button class="btn btn-primary" type="submit">{{ t('pipeline.meta_save') }}</button></div>{% endif %}
+    </section>
+    <section class="meta-cover">
+      <h3 class="selection-title">{{ t('pipeline.meta_cover_h') }} <span class="sub" style="font-weight:400">{{ t('pipeline.meta_cover_hint', n=meta.images|length) }}</span></h3>
+      {% include "pipeline/_cover_gallery.html" %}
+      <p class="sub" style="margin:0">{{ t('pipeline.meta_cover_needed') }}</p>
+    </section>
+  </fieldset>
+</form>
+
+{% if not row.archived %}
+<form class="panel cover-import" hx-post="/api/v1/pipeline/{{ job_id }}/images" hx-encoding="multipart/form-data"
+      hx-target="#cover-gallery" hx-swap="outerHTML" hx-indicator="#import-busy">
+  <h3 class="selection-title">{{ t('pipeline.meta_import_h') }}</h3>
+  <div class="import-grid">
+    <label class="tts-field"><span>{{ t('pipeline.meta_import_files') }}</span>
+      <input type="file" name="files" multiple accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"></label>
+    <label class="tts-field"><span>{{ t('pipeline.meta_import_urls') }}</span>
+      <textarea name="urls" rows="3" placeholder="{{ t('pipeline.meta_import_urls_ph') }}" spellcheck="false"></textarea></label>
+  </div>
+  <div class="btn-row">
+    <button class="btn" type="submit">{{ t('pipeline.meta_import_btn') }}</button>
+    <span id="import-busy" class="htmx-indicator run-state sub"><span class="spinner" aria-hidden="true"></span>{{ t('pipeline.meta_importing') }}</span>
+    <span class="sub">{{ t('pipeline.meta_import_note') }}</span>
+  </div>
+</form>
+{% endif %}
+{% endif %}

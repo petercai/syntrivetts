@@ -1,0 +1,20 @@
+{% macro field(p, v, t_or, job_id) -%}
+{% set label = t_or('tts.field.' ~ p.field, p.label) %}
+{% if p.input_type.value == 'checkbox' %}
+<label class="switch-row tts-check"><input type="checkbox" role="switch" name="{{ p.field }}" value="1" {% if v[p.field] %}checked{% endif %}><span>{{ label }}</span></label>
+{% elif p.field == 'model' %}
+<label class="tts-field"><span>{{ label }}</span>{% include "pipeline/_tts_models.html" %}</label>
+{% elif p.choices %}
+<label class="tts-field"><span>{{ label }}</span>
+  <select name="{{ p.field }}" {% if p.field == 'engine' %}hx-get="/api/v1/pipeline/{{ job_id }}/tts-models" hx-target="#model-select" hx-swap="outerHTML" hx-trigger="change"{% endif %}
+          {% if p.field == 'output_split' %}data-gate-source{% endif %}>
+    {% for c in p.choices %}<option value="{{ c }}" {% if v[p.field] == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+  </select>
+</label>
+{% else %}
+<label class="tts-field"><span>{{ label }}</span>
+  <input type="number" name="{{ p.field }}" value="{{ v[p.field] }}" min="{{ p.min_val }}" max="{{ p.max_val }}" step="{{ p.step }}"
+         {% if p.field == 'output_split_minutes' %}data-gated {% if v['output_split'] != 'by-duration' %}disabled{% endif %}{% endif %}>
+</label>
+{% endif %}
+{%- endmacro %}

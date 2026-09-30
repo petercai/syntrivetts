@@ -1,0 +1,47 @@
+{% set job_id = row.job_id %}
+{% set step = selected.step %}
+{% set next_step = view.steps[selected.number] if selected.number < view.steps|length else none %}
+{% if notice %}{% include "pipeline/_notice.html" %}{% endif %}
+
+{% if step.value == 'transcript_review' %}
+{% include "pipeline/_decide_review.html" %}
+{% elif step.value == 'tts_config' %}
+{% include "pipeline/_decide_tts.html" %}
+{% else %}
+<div class="step-panel">
+  <section>
+    <h2><span class="num">{{ selected.number }}/9</span>{{ t('step.' ~ step.value) }}</h2>
+    <p class="step-about">{{ t('pipeline.about.' ~ step.value) }}</p>
+
+    {% if step.value == 'transcript_merge' %}{% include "pipeline/_decide_merge_settings.html" %}{% endif %}
+    {% if step.value == 'transcript_clean' %}{% include "pipeline/_decide_clean.html" %}{% endif %}
+
+    {% if selected.mode.value == 'run' %}
+    <div id="run-panel">{% include "pipeline/_run_panel.html" %}</div>
+    {% elif selected.mode.value == 'tui' %}
+    <div class="callout">
+      <p>{{ t('pipeline.tui_note') }}</p>
+      <code class="cmd">{{ commands.tui }}</code>
+    </div>
+    {% else %}
+    <div class="callout">
+      <p>{{ t('pipeline.queue_note') }}</p>
+      <code class="cmd">{{ commands.task }}</code>
+      <code class="cmd">{{ commands.batch }}</code>
+    </div>
+    {% endif %}
+
+    {% if selected.state.value == 'done' and next_step and next_step.state.value == 'current' %}
+    <p style="margin-top:18px"><a class="btn btn-primary" href="/pipeline/{{ job_id }}?step={{ next_step.step.value }}">{{ t('pipeline.continue_to', step=t('step.' ~ next_step.step.value)) }}</a></p>
+    {% endif %}
+
+    {% if step.value == 'transcript_clean' %}{% include "pipeline/_decide_clean_results.html" %}{% endif %}
+  </section>
+
+  <aside class="aside" aria-label="{{ t('pipeline.details') }}">
+    {% if step.value == 'transcript_clean' %}{% include "pipeline/_decide_rules.html" %}{% endif %}
+    {% include "pipeline/_step_details.html" %}
+  </aside>
+</div>
+{% if step.value == 'transcript_merge' %}{% include "pipeline/_decide_selection.html" %}{% endif %}
+{% endif %}

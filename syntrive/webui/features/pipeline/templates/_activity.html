@@ -1,0 +1,26 @@
+{% if activity %}
+<div class="panel">
+  <table class="rows">
+    <thead>
+      <tr>
+        <th scope="col">{{ t('pipeline.act_when') }}</th>
+        <th scope="col">{{ t('pipeline.act_step') }}</th>
+        <th scope="col">{{ t('pipeline.act_action') }}</th>
+        <th scope="col">{{ t('pipeline.act_notes') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in activity %}
+      <tr>
+        <td class="num sub">{{ a.at|when }}</td>
+        <td>{{ t_or('step.' ~ a.step, a.step) }}</td>
+        <td>{{ t_or('pipeline.action_' ~ a.action, a.action) }}</td>
+        <td class="sub">{{ a.notes }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="empty">{{ t('pipeline.act_empty') }}</p>
+{% endif %}

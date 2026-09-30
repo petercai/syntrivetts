@@ -1,0 +1,12 @@
+<fieldset class="format-options">
+  <legend>{{ t('pipeline.text_formats_h') }}</legend>
+  <input type="hidden" name="text_options" value="1">
+  {% for fmt in text_formats %}
+  <div class="format-row">
+    <input type="checkbox" id="fmt-{{ fmt }}" name="text_format" value="{{ fmt }}" {% if fmt in text_defaults %}checked{% endif %}>
+    <label for="fmt-{{ fmt }}"><strong>{{ t('pipeline.fmt_' ~ fmt) }}</strong> <span class="mono sub">{{ fmt }}/</span><br><span class="sub">{{ t('pipeline.fmt_' ~ fmt ~ '_about') }}</span></label>
+    <label class="radio-label"><input type="radio" name="text_primary" value="{{ fmt }}" {% if fmt == text_primary %}checked{% endif %}> {{ t('pipeline.fmt_use_for_synthesis') }}</label>
+  </div>
+  {% endfor %}
+  <p class="sub" style="margin:0">{{ t('pipeline.text_not_saved') }}</p>
+</fieldset>

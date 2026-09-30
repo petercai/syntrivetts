@@ -1,0 +1,51 @@
+{% set step_label = t('step.' ~ step.value) %}
+{% if confirm %}
+<form class="callout" role="group" aria-labelledby="exists-heading" hx-post="/api/v1/pipeline/{{ job_id }}/run" hx-target="#run-panel">
+  <h3 id="exists-heading" style="margin:0 0 6px">{{ t('pipeline.exists_h') }}</h3>
+  <p class="sub" style="white-space:pre-line">{{ confirm }}</p>
+  <input type="hidden" name="step" value="{{ step.value }}">
+  {% for name, value in resubmit or [] %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  <div class="btn-row">
+    <button class="btn btn-primary" type="submit" name="on_existing" value="overwrite">{{ t('pipeline.overwrite') }}</button>
+    <button class="btn" type="submit" name="on_existing" value="keep">{{ t('pipeline.keep') }}</button>
+    <a class="btn btn-quiet" href="/pipeline/{{ job_id }}?step={{ step.value }}">{{ t('common.cancel') }}</a>
+  </div>
+</form>
+{% elif run and run.running %}
+<div class="callout" hx-get="/api/v1/pipeline/{{ job_id }}/run" hx-trigger="every 2s" hx-swap="outerHTML" role="status">
+  <div class="run-state">
+    <span class="spinner" aria-hidden="true"></span>
+    <strong>{{ t('pipeline.running', step=t('step.' ~ run.step.value)) }}</strong>
+    <span class="num muted">{{ run.seconds|int }} s</span>
+  </div>
+  <p class="sub" style="margin:8px 0 0">{{ t('pipeline.running_hint') }}</p>
+</div>
+{% else %}
+  {% set result = run.result if run and run.result and run.step == step else none %}
+  {% if result %}
+  <div class="callout" role="status">
+    {% if result.ok %}
+    <p><span class="result-ok">{{ t('pipeline.result_' ~ result.disposition.value) }}</span>
+       <span class="sub num">{{ run.seconds|round(1) }} s</span></p>
+    {% if result.artifacts %}
+    <dl class="kv">{% for key, value in result.artifacts.items() %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>
+    {% endif %}
+    {% if result.notes %}<p class="sub" style="white-space:pre-line;margin-top:8px">{{ result.notes }}</p>{% endif %}
+    {% else %}
+    <p><span class="result-bad">{{ t('pipeline.result_failed') }}</span></p>
+    <p class="sub" style="white-space:pre-line">{{ result.error }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% if can_run %}
+  <form class="run-form" hx-post="/api/v1/pipeline/{{ job_id }}/run" hx-target="#run-panel">
+    <input type="hidden" name="step" value="{{ step.value }}">
+    {% if step.value == 'transcript_text' %}{% include "pipeline/_text_options.html" %}{% endif %}
+    {% if review_fmt %}<input type="hidden" name="transcript_path" value="{{ review_fmt }}">{% endif %}
+    <button class="btn btn-primary" type="submit" hx-disabled-elt="this">
+      {{ t('pipeline.review_use', fmt=review_fmt) if review_fmt else t('pipeline.run', step=step_label) }}</button>
+  </form>
+  {% elif not result and selected is defined %}
+  <p class="sub">{{ t('pipeline.not_runnable_' ~ ('archived' if row.archived else selected.state.value)) }}</p>
+  {% endif %}
+{% endif %}

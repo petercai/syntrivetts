@@ -1,0 +1,66 @@
+{% from "shared/macros.html" import track_mini, step_name, cover %}
+{% if notice %}
+<div id="flash" hx-swap-oob="innerHTML"><div class="flash flash-ok" role="status"><p>{{ notice }}</p>
+  <div class="btn-row"><button class="btn btn-quiet" type="button" data-dismiss-flash aria-label="{{ t('common.dismiss') }}">✕</button></div></div></div>
+{% endif %}
+<nav class="tabs" aria-label="{{ t('books.tabs_label') }}">
+  {% for key in ['active', 'done', 'archived'] %}
+  <a class="tab" href="/books?tab={{ key }}{% if q %}&q={{ q|urlencode }}{% endif %}" {% if key == tab %}aria-current="page"{% endif %}>
+    {{ t('books.tab_' ~ key) }}<span class="num">{{ counts[key] }}</span>
+  </a>
+  {% endfor %}
+</nav>
+<div class="panel" style="margin-top:16px">
+  {% if rows %}
+  <table class="rows">
+    <thead>
+      <tr>
+        <th scope="col">{{ t('books.col_book') }}</th>
+        <th scope="col">{{ t('books.col_language') }}</th>
+        <th scope="col">{{ t('books.col_step') }}</th>
+        <th scope="col" class="right">{{ t('books.col_chapters') }}</th>
+        <th scope="col" class="right">{{ t('books.col_audio') }}</th>
+        <th scope="col">{{ t('books.col_updated') }}</th>
+        <th scope="col"><span class="visually-hidden">{{ t('books.col_actions') }}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>
+          <a class="row-link" href="/pipeline/{{ r.job_id }}">
+            {{ cover(r.job_id, r) }}
+            <span><span class="title cjk">{{ r.title }}</span><br><span class="sub cjk">{{ r.author or t('books.unknown_author') }}</span></span>
+          </a>
+        </td>
+        <td><span class="lang-tag">{{ r.language or '—' }}</span></td>
+        <td>
+          <div class="step-cell">
+            {{ track_mini(r.pipeline, t) }}
+            <span class="step-name"><span class="num">{{ r.pipeline.current_number }}/9</span>{{ step_name(r.pipeline, t) }}</span>
+          </div>
+        </td>
+        <td class="right num">{{ r.chapter_count or '—' }}</td>
+        <td class="right num">{% if r.audio_chapter_count %}{{ r.audio_chapter_count }}/{{ r.chapter_count }}{% else %}—{% endif %}</td>
+        <td class="num sub">{{ r.updated_at|when }}</td>
+        <td class="right">
+          <details class="menu">
+            <summary aria-label="{{ t('books.actions_for', title=r.title) }}">•••</summary>
+            <div class="menu-items">
+              {% if r.archived %}
+              <button type="button" hx-post="/api/v1/books/{{ r.job_id }}/restore" hx-vals='{{ {"tab": tab, "q": q}|tojson }}' hx-target="#books-panel">{{ t('books.restore') }}</button>
+              {% else %}
+              <button type="button" hx-post="/api/v1/books/{{ r.job_id }}/archive" hx-vals='{{ {"tab": tab, "q": q}|tojson }}' hx-target="#books-panel">{{ t('books.archive') }}</button>
+              {% endif %}
+              <button type="button" class="danger" hx-get="/api/v1/books/{{ r.job_id }}/delete" hx-target="#dialog-host">{{ t('books.delete') }}</button>
+            </div>
+          </details>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">{{ t('books.empty_search') if q else t('books.empty_' ~ tab) }}</p>
+  {% endif %}
+</div>

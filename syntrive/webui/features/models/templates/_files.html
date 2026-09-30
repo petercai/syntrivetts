@@ -1,0 +1,12 @@
+<div class="files-panel">
+  {% if not files %}
+  <span class="sub">{{ t('models.files_none') }}</span>
+  {% else %}
+  {% for name, size, role in files %}
+  <span class="num ellipsis" title="{{ name }}">{{ name }}</span>
+  <span class="num sub right">{{ size|size }}</span>
+  <span class="{{ '' if role else 'sub' }}">{{ role or t('models.files_unknown') }}</span>
+  {% endfor %}
+  {% endif %}
+  <button type="button" class="btn btn-sm btn-quiet files-hide" data-files-hide>{{ t('models.files_hide') }}</button>
+</div>

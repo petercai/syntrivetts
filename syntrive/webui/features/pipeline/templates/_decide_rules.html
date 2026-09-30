@@ -1,0 +1,13 @@
+<form class="rules" hx-post="/api/v1/pipeline/{{ job_id }}/cleaning-rules">
+  <h3>{{ t('pipeline.rules_h') }} <span class="num sub">{{ t('pipeline.rules_on', on=rules|selectattr('enabled')|list|length, total=rules|length) }}</span></h3>
+  <fieldset class="rule-list" {% if row.archived %}disabled{% endif %}>
+    <legend class="visually-hidden">{{ t('pipeline.rules_h') }}</legend>
+    {% for r in rules %}
+    <label class="switch-row" title="{{ r.description }}">
+      <input type="checkbox" role="switch" name="rule" value="{{ r.name }}" {% if r.enabled %}checked{% endif %}>
+      <span>{{ r.label }}</span>
+    </label>
+    {% endfor %}
+  </fieldset>
+  {% if not row.archived %}<button class="btn" type="submit" style="margin-top:8px">{{ t('pipeline.rules_save') }}</button>{% endif %}
+</form>

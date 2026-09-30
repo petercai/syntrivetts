@@ -1,0 +1,44 @@
+<div class="review-head">
+  <h2><span class="num">{{ selected.number }}/9</span>{{ t('step.' ~ step.value) }}</h2>
+  <p class="step-about">{{ t('pipeline.about.' ~ step.value) }}</p>
+</div>
+{% if not review_fmt %}
+<div class="callout"><p>{{ t('pipeline.review_no_text') }}</p></div>
+{% else %}
+{% set first = review_files[0] if review_files else none %}
+<div class="review">
+  <nav class="panel review-list" aria-label="{{ t('pipeline.review_chapters') }}">
+    <div class="review-list-head sub">{{ t('pipeline.review_list_head', n=review_files|length) }}</div>
+    {% set ns = namespace(volume=none) %}
+    {% for f in review_files %}
+    {% if f.volume and f.volume != ns.volume %}<div class="review-volume sub cjk">{{ f.volume }}</div>{% endif %}
+    {% set ns.volume = f.volume %}
+    <button type="button" class="review-item{{ ' is-missing' if not f.exists }}" {% if loop.first %}aria-current="true"{% endif %}
+            hx-get="/api/v1/pipeline/{{ job_id }}/transcript?fmt={{ review_fmt }}&file={{ f.file_name }}" hx-target="#reader" data-review-item>
+      <span class="cjk ellipsis">{{ f.title }}</span><span class="num sub">{{ f.lines }}</span>
+    </button>
+    {% endfor %}
+  </nav>
+  <section class="panel reader-pane" aria-label="{{ t('pipeline.review_reader') }}">
+    <div class="reader-bar">
+      <div class="seg-links" role="group" aria-label="{{ t('pipeline.review_format') }}">
+        {% for f in review.formats %}
+        {% if f.available %}
+        <a href="/pipeline/{{ job_id }}?step={{ step.value }}&fmt={{ f.name }}" {% if f.name == review_fmt %}aria-current="true"{% endif %}>{{ f.name }} · {{ '{:,}'.format(f.files|sum(attribute='lines')) }} {{ t('pipeline.review_lines') }}</a>
+        {% else %}
+        <span aria-disabled="true" title="{{ t('pipeline.review_format_missing') }}">{{ f.name }}</span>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    <div id="reader" class="reader" {% if first %}hx-get="/api/v1/pipeline/{{ job_id }}/transcript?fmt={{ review_fmt }}&file={{ first.file_name }}" hx-trigger="load"{% endif %}>
+      <p class="sub">{{ t('pipeline.review_pick') }}</p>
+    </div>
+    <div class="action-bar">
+      <div id="run-panel">{% include "pipeline/_run_panel.html" %}</div>
+      <span class="sub">{{ t('pipeline.review_readonly') }} <span class="mono">{{ row.process_dir.name }}/transcript_text/{{ review_fmt }}/</span></span>
+    </div>
+  </section>
+</div>
+{% if can_restart %}<div class="aside-inline">{% include "pipeline/_step_details.html" %}</div>{% endif %}
+{% endif %}

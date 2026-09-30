@@ -1,0 +1,31 @@
+<dialog class="tools-dialog is-wide" aria-labelledby="import-heading">
+  <h2 id="import-heading">{{ t('tools.import_heading', name=name) }}</h2>
+  <p>{{ t('tools.import_summary', books=plan.export.books|length, jobs=plan.export.job_count, conflicts=plan.conflicts|length) }}</p>
+  <form hx-post="/api/v1/tools/files/{{ name|urlencode }}/import" data-import-form>
+    <div class="plan">
+      <div class="p-row p-head"><span></span><span>{{ t('tools.col_book') }}</span><span>{{ t('tools.col_folder') }}</span><span>{{ t('tools.col_here') }}</span><span>{{ t('tools.col_when_exists') }}</span></div>
+      {% for b in plan.export.books %}
+      {% for j in b.jobs %}
+      {% set c = conflicts.get(j.job_id) %}
+      <div class="p-row" data-job-row data-conflict="{{ 'true' if c else 'false' }}">
+        <input type="checkbox" name="job" value="{{ j.job_id }}" checked aria-label="{{ t('tools.import_job', title=b.title) }}">
+        <span class="cjk ellipsis">{{ b.title }}</span>
+        <span class="num sub ellipsis" title="{{ j.process_dir }}">{{ j.process_dir }}</span>
+        {% if c %}<span class="here">{{ t('tools.exists_here', id=c.target_job_id) }}</span>{% else %}<span class="new">{{ t('tools.new_here') }}</span>{% endif %}
+        <span class="choice">
+          {% if c %}
+          <label><input type="radio" name="mode_{{ j.job_id }}" value="skip" checked>{{ t('tools.skip') }}</label>
+          <label><input type="radio" name="mode_{{ j.job_id }}" value="overwrite" data-overwrite="{{ j.job_id }}">{{ t('tools.overwrite') }}</label>
+          {% else %}<span class="sub">—</span>{% endif %}
+        </span>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+    <p class="sub">{{ t('tools.overwrite_note') }}</p>
+    <div class="btn-row">
+      <button type="button" class="btn" data-close-dialog>{{ t('common.cancel') }}</button>
+      <button type="submit" class="btn btn-primary" data-import-submit data-label="{{ t('tools.import_label') }}">{{ t('tools.import_label', add=plan.export.job_count - plan.conflicts|length, overwrite=0, skip=plan.conflicts|length) }}</button>
+    </div>
+  </form>
+</dialog>

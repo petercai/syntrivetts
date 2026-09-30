@@ -1,0 +1,11 @@
+{% extends "shared/base.html" %}
+{% block title %}{{ status_code }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t('error.title_' ~ status_code) if status_code in (401, 404, 409, 422) else t('error.title') }}</h1>
+    <p class="lede">{% if message %}{{ message }}{% else %}{{ t('error.unexpected', id=request_id) }}{% endif %}</p>
+  </div>
+</div>
+<p><a class="btn" href="/books">{{ t('error.back') }}</a></p>
+{% endblock %}

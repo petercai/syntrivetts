@@ -1,0 +1,11 @@
+<dialog class="tools-dialog" aria-labelledby="restore-heading">
+  <h2 id="restore-heading">{{ t('tools.restore_heading', name=backup.path.name) }}</h2>
+  <p>{{ t('tools.contains_backup', voices=backup.voice_count, tags=backup.tag_count) }} · {{ backup.size_bytes|size }} · {{ backup.modified|when }}</p>
+  <p class="sub">{{ t('tools.restore_note') }}</p>
+  <form hx-post="/api/v1/tools/files/{{ backup.path.name|urlencode }}/restore">
+    <div class="btn-row">
+      <button type="button" class="btn" data-close-dialog>{{ t('common.cancel') }}</button>
+      <button type="submit" class="btn btn-primary">{{ t('tools.restore_go') }}</button>
+    </div>
+  </form>
+</dialog>

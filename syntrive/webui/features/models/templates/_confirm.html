@@ -1,0 +1,15 @@
+<dialog aria-labelledby="download-heading">
+  <h2 id="download-heading">{{ t('models.confirm_heading', label=row.label) }}</h2>
+  <dl class="disk-check">
+    <dt>{{ t('models.confirm_size') }}</dt><dd class="num">~{{ row.approx_gb }} GB</dd>
+    <dt>{{ t('models.confirm_free') }}</dt><dd class="num">{{ check.free_bytes|size }}</dd>
+    <dt>{{ t('models.confirm_after') }}</dt><dd class="num{{ ' is-low' if check.low }}">{{ [check.after_bytes, 0]|max|size }}</dd>
+  </dl>
+  {% if check.low %}<div class="flash" role="status"><p>{{ t('models.confirm_low', gb=(low_bytes / 1073741824)|round|int) }}</p></div>{% endif %}
+  <form hx-post="/api/v1/models/{{ row.engine }}/{{ row.model_id }}/download">
+    <div class="btn-row">
+      <button type="button" class="btn" data-close-dialog>{{ t('common.cancel') }}</button>
+      <button type="submit" class="btn btn-primary">{{ t('models.download') }}</button>
+    </div>
+  </form>
+</dialog>

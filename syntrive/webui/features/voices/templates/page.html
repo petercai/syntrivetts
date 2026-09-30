@@ -1,0 +1,82 @@
+{% extends "shared/base.html" %}
+{% block title %}{{ t('voices.title') }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/voices/voices.css">
+<script src="/static/voices/voices.js" defer></script>
+{% endblock %}
+{% macro dur(seconds) -%}
+{%- if seconds is none %}—{% else %}{{ (seconds // 60)|int }}:{{ '%02d'|format((seconds % 60)|round|int) }}{% endif -%}
+{%- endmacro %}
+{% macro play(id, name) -%}
+<button type="button" class="play" data-play="/api/v1/voices/{{ id }}/audio" aria-label="{{ t('voices.play', name=name) }}">
+  <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="currentColor"></path></svg></button>
+{%- endmacro %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t('voices.title') }}</h1>
+    <p class="lede">{{ t('voices.lede', n=rows|length, used=facets.get('flag:in_use', 0), no_text=facets.get('flag:no_text', 0)) }}</p>
+  </div>
+  <div class="btn-row">
+    {% if mode == 'import' %}
+    <a class="btn" href="{{ href() }}">{{ t('voices.back_to_catalog') }}</a>
+    {% else %}
+    <button class="btn" type="button" hx-post="/api/v1/voices/durations" title="{{ t('voices.durations_hint') }}">{{ t('voices.durations') }}</button>
+    <a class="btn btn-primary" href="/voices?mode=import">{{ t('voices.scan') }}</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if notice %}
+{% set parts = notice.split(':') %}
+<div class="flash flash-ok" role="status"><p>{{ t('voices.notice_' ~ parts[0], a=parts[1] if parts|length > 1 else '', b=parts[2] if parts|length > 2 else '') }}</p></div>
+{% endif %}
+
+{% if mode == 'import' %}
+{% include "voices/_import.html" %}
+{% else %}
+<form class="voice-filters" method="get" action="/voices" role="search">
+  {% for k in ('lang', 'gender', 'flag') %}{% if filters[k] %}<input type="hidden" name="{{ k }}" value="{{ filters[k] }}">{% endif %}{% endfor %}
+  <label class="visually-hidden" for="voice-search">{{ t('voices.search') }}</label>
+  <input id="voice-search" class="search" type="search" name="q" value="{{ filters.q }}" placeholder="{{ t('voices.search') }}" autocomplete="off">
+  <nav class="chips" aria-label="{{ t('voices.filter_label') }}">
+    <a class="fchip" href="{{ href(lang='') }}" {% if not filters.lang %}aria-current="true"{% endif %}>{{ t('voices.all_languages') }}</a>
+    {% for code in languages %}
+    <a class="fchip" href="{{ href(lang=code) }}" {% if filters.lang == code %}aria-current="true"{% endif %}>{{ code }} · {{ facets.get('lang:' ~ code, 0) }}</a>
+    {% endfor %}
+    <span class="chip-sep" aria-hidden="true"></span>
+    <a class="fchip" href="{{ href(gender='') }}" {% if not filters.gender %}aria-current="true"{% endif %}>{{ t('voices.any_gender') }}</a>
+    {% for g in genders %}
+    <a class="fchip" href="{{ href(gender=g) }}" {% if filters.gender == g %}aria-current="true"{% endif %}>{{ t('voices.gender_' ~ g) }} · {{ facets.get('gender:' ~ g, 0) }}</a>
+    {% endfor %}
+    <span class="chip-sep" aria-hidden="true"></span>
+    {% for f in flags %}
+    <a class="fchip" href="{{ href(flag='' if filters.flag == f else f) }}" {% if filters.flag == f %}aria-current="true"{% endif %}>{{ t('voices.flag_' ~ f) }} · {{ facets.get('flag:' ~ f, 0) }}</a>
+    {% endfor %}
+  </nav>
+</form>
+
+<div class="voices-layout{{ ' has-inspector' if selected }}">
+  <div class="panel voice-table">
+    <div class="v-row v-head"><span></span><span>{{ t('voices.col_name') }}</span><span>{{ t('voices.col_gender') }}</span><span>{{ t('voices.col_lang') }}</span><span class="right">{{ t('voices.col_length') }}</span><span class="col-tags">{{ t('voices.col_tags') }}</span><span>{{ t('voices.col_text') }}</span><span class="col-used">{{ t('voices.col_used') }}</span></div>
+    {% for r in shown %}
+    <div class="v-row{{ ' is-selected' if selected and selected.voice.db_id == r.voice.db_id }}{{ ' is-missing' if not r.file_present }}">
+      {% if r.file_present %}{{ play(r.voice.db_id, r.voice.name) }}{% else %}<span class="missing-mark" title="{{ t('voices.file_missing', path=r.voice.stored_path) }}">!</span>{% endif %}
+      <a class="v-name ellipsis" href="{{ href(voice=r.voice.db_id) }}" title="{{ r.voice.stored_path }}">{{ r.voice.name }}</a>
+      <span class="sub">{{ t_or('voices.gender_' ~ r.voice.gender, r.voice.gender or '—') }}</span>
+      <span class="num">{{ r.voice.language or '—' }}</span>
+      <span class="num right">{{ dur(r.voice.duration_seconds) }}</span>
+      <span class="tags col-tags">{% for tag in r.voice.tags %}<span class="tag">{{ tag }}</span>{% endfor %}</span>
+      <span class="{{ 'text-ok' if r.has_ref_text else 'text-missing' }}">{{ t('voices.text_ok') if r.has_ref_text else t('voices.text_missing') }}</span>
+      <span class="cjk ellipsis sub col-used" title="{{ r.used_by|join(' · ') }}">{{ r.used_by|join(' · ') if r.used_by else '—' }}</span>
+    </div>
+    {% else %}
+    <p class="empty">{{ t('voices.none_match') if rows else t('voices.empty') }}</p>
+    {% endfor %}
+    {% if shown %}<div class="table-foot sub">{{ t('voices.foot', shown=shown|length, total=rows|length) }}</div>{% endif %}
+  </div>
+  {% if selected %}{% include "voices/_inspector.html" %}{% endif %}
+</div>
+{% endif %}
+<audio id="voice-player" preload="none"></audio>
+{% endblock %}

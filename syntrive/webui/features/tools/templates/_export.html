@@ -1,0 +1,30 @@
+<dialog class="tools-dialog" aria-labelledby="export-heading">
+  <h2 id="export-heading">{{ t('tools.export_heading') }}</h2>
+  {% if not books %}
+  <p>{{ t('tools.export_no_books') }}</p>
+  <div class="btn-row"><button type="button" class="btn" data-close-dialog>{{ t('common.cancel') }}</button></div>
+  {% else %}
+  <form hx-post="/api/v1/tools/export" data-export-form>
+    <p class="sub">{{ t('tools.export_rows_only') }}</p>
+    <div class="pick-list">
+      {% for b in books %}
+      <div class="pick-book">
+        <label class="pick-book-head"><input type="checkbox" data-book checked><strong class="cjk">{{ b.title }}</strong>{% if b.author %}<span class="sub cjk">{{ b.author }}</span>{% endif %}</label>
+        {% for j in b.jobs %}
+        <label class="pick-job">
+          <input type="checkbox" name="job" value="{{ j.job_id }}" checked>
+          <span class="num ellipsis">{{ j.process_dir }}</span>
+          <span class="sub">{{ t_or('step.' ~ j.stage, j.stage) }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <label class="check-line"><input type="checkbox" name="include_voices" value="1" checked>{{ t('tools.include_voices') }}</label>
+    <div class="btn-row">
+      <button type="button" class="btn" data-close-dialog>{{ t('common.cancel') }}</button>
+      <button type="submit" class="btn btn-primary" data-export-submit data-label-n="{{ t('tools.export_n') }}">{{ t('tools.export_n', n=books|sum(attribute='jobs', start=())|length) }}</button>
+    </div>
+  </form>
+  {% endif %}
+</dialog>

@@ -1,0 +1,30 @@
+{% macro track_mini(view, t) -%}
+<span class="track-mini" role="img" aria-label="{{ t('track.aria', n=view.current_number, name=step_name(view, t)) }}">
+  {%- for s in view.steps %}<span class="{{ s.state.value }}"></span>{% endfor -%}
+</span>
+{%- endmacro %}
+
+{% macro step_name(view, t) -%}
+{{ t('track.finished') if view.finished else t('step.' ~ view.current.value) }}
+{%- endmacro %}
+
+{% macro track_full(view, t, job_id, selected) -%}
+<nav class="track" aria-label="{{ t('track.label') }}">
+  {% for s in view.steps %}
+  <a class="seg {{ s.state.value }}" href="/pipeline/{{ job_id }}?step={{ s.step.value }}"
+     {% if selected == s.step %}aria-current="step"{% endif %}
+     title="{{ s.number }}. {{ t('step.' ~ s.step.value) }} — {{ t('state.' ~ s.state.value) }}">
+    <span class="bar"></span>
+    <span class="label"><span class="num">{{ s.number }}</span>{{ t('step.' ~ s.step.value) }}</span>
+  </a>
+  {% endfor %}
+</nav>
+{%- endmacro %}
+
+{% macro cover(job_id, row, large=False) -%}
+{% if row.cover_path %}
+<img class="cover{{ ' cover-lg' if large }}" src="/api/v1/books/{{ job_id }}/cover" alt="" loading="lazy">
+{% else %}
+<span class="cover cover-empty{{ ' cover-lg' if large }}" aria-hidden="true">—</span>
+{% endif %}
+{%- endmacro %}

@@ -1,0 +1,9 @@
+<div class="drawer-body">
+  <div class="drawer-head">
+    <strong class="cjk">{{ chapter.title if chapter else chapter_id }}</strong>
+    <span class="mono sub">merged/{{ chapter_id }}.html</span>
+    <button type="button" class="btn btn-quiet" data-close-drawer aria-label="{{ t('common.dismiss') }}">✕</button>
+  </div>
+  {% if chapter %}<p class="sub" style="margin:0">{{ t('pipeline.sel_drawer_meta', chars='{:,}'.format(chapter.char_count), state=t('pipeline.sel_excluded') if chapter.excluded else t('pipeline.sel_included')) }}</p>{% endif %}
+  <div class="drawer-text cjk">{% for line in text.splitlines() %}<p>{{ line }}</p>{% endfor %}{% if truncated %}<p class="sub">…</p>{% endif %}</div>
+</div>

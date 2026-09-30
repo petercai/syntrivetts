@@ -1,0 +1,31 @@
+{% set merged = selection.available %}
+{% set mode_label = merge.override if merge.override else t('pipeline.merge_auto') %}
+<form class="decision" hx-post="/api/v1/pipeline/{{ job_id }}/merge-settings" hx-trigger="change">
+  {% if merged %}
+  <details class="settings-line">
+    <summary>
+      <span>{{ t('pipeline.merge_mode') }} <strong>{{ mode_label }}</strong>{% if not merge.override and merge.detected %} <span class="sub">({{ t('pipeline.merge_detected', mode=merge.detected) }})</span>{% endif %}</span>
+      <span aria-hidden="true">·</span>
+      <span>{{ t('pipeline.merge_numbering_reset') if merge.reset_per_volume else t('pipeline.merge_numbering_continue') }}</span>
+      <span class="link">{{ t('pipeline.change') }}</span>
+    </summary>
+  {% endif %}
+  <fieldset class="decision-fields" {% if row.archived or not can_run and not merged %}disabled{% endif %}>
+    <legend class="visually-hidden">{{ t('pipeline.merge_settings') }}</legend>
+    <div class="field">
+      <span class="field-label" id="merge-mode-label">{{ t('pipeline.merge_mode') }}</span>
+      <div class="seg-control" role="radiogroup" aria-labelledby="merge-mode-label">
+        <label><input type="radio" name="override" value="" {% if not merge.override %}checked{% endif %}><span>{{ t('pipeline.merge_auto') }}{% if merge.detected %} · {{ merge.detected }}{% endif %}</span></label>
+        {% for mode in merge.choices %}
+        <label><input type="radio" name="override" value="{{ mode }}" {% if merge.override == mode %}checked{% endif %}><span>{{ mode }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+    <label class="switch-row">
+      <input type="checkbox" role="switch" name="reset_per_volume" value="1" {% if merge.reset_per_volume %}checked{% endif %}>
+      <span>{{ t('pipeline.merge_reset_label') }}</span>
+    </label>
+    {% if merged %}<p class="sub" style="margin:0">{{ t('pipeline.merge_applies_next') }}</p>{% endif %}
+  </fieldset>
+  {% if merged %}</details>{% endif %}
+</form>

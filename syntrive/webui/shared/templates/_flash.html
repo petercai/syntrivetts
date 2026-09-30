@@ -1,0 +1,9 @@
+<div class="flash flash-{{ level }}" role="alert">
+  <p>{% if message %}{{ message }}{% else %}{{ t('error.unexpected', id=request_id) }}{% endif %}</p>
+  <div class="btn-row">
+    {% if unlock_job_id %}
+    <button class="btn" hx-post="/api/v1/leases/{{ unlock_job_id }}/unlock" hx-confirm="{{ t('lease.unlock_confirm') }}">{{ t('lease.unlock') }}</button>
+    {% endif %}
+    <button class="btn btn-quiet" type="button" data-dismiss-flash aria-label="{{ t('common.dismiss') }}">✕</button>
+  </div>
+</div>

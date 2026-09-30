@@ -1,0 +1,62 @@
+<form class="scan-form" method="get" action="/voices">
+  <input type="hidden" name="mode" value="import">
+  <label class="vfield scan-external">{{ t('voices.external') }}
+    <input type="text" name="external" value="{{ external }}" placeholder="{{ t('voices.external_hint') }}" autocomplete="off" spellcheck="false">
+  </label>
+  <label class="vfield">{{ t('voices.lan') }}
+    <select name="lan">{% for f in lan_filters %}<option value="{{ f }}" {% if lan == f %}selected{% endif %}>{{ t('voices.lan_' ~ f) }}</option>{% endfor %}</select>
+  </label>
+  <button class="btn" type="submit">{{ t('voices.rescan') }}</button>
+</form>
+
+<p class="sub">{{ t('voices.scan_summary', new=scan.new|length, skipped=scan.skipped, missing=scan.missing|length) }}</p>
+
+{% if scan.missing %}
+<section class="panel missing-list" aria-labelledby="missing-title">
+  <h2 id="missing-title" class="panel-title">{{ t('voices.missing_title') }}</h2>
+  {% for m in scan.missing %}
+  <div class="m-row">
+    <strong>{{ m.name }}</strong><span class="num sub ellipsis">{{ m.stored_path }}</span>
+    {% if m.replacement %}
+    <span class="num ellipsis">→ {{ m.replacement }}</span>
+    <button class="btn" type="button" hx-post="/api/v1/voices/{{ m.db_id }}/relink" hx-vals='{"external": {{ external|tojson }}, "lan": {{ lan|tojson }}}'>{{ t('voices.relink') }}</button>
+    {% else %}<span class="sub">{{ t('voices.no_replacement') }}</span><span></span>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if scan.new %}
+<form id="import-form" class="import-form" data-import-form hx-post="/api/v1/voices/import">
+  <input type="hidden" name="external" value="{{ external }}">
+  <input type="hidden" name="lan" value="{{ lan }}">
+  <fieldset class="batch-fields">
+    <legend class="sub">{{ t('voices.batch_legend') }}</legend>
+    <label class="vfield">{{ t('voices.col_gender') }}
+      <select name="gender"><option value="">{{ t('voices.keep') }}</option>{% for g in genders %}<option value="{{ g }}">{{ t('voices.gender_' ~ g) }}</option>{% endfor %}</select>
+    </label>
+    <label class="vfield">{{ t('voices.col_lang') }}
+      <select name="language"><option value="">{{ t('voices.keep') }}</option>{% for code in language_choices %}<option value="{{ code }}">{{ code }}</option>{% endfor %}</select>
+    </label>
+    <label class="vfield">{{ t('voices.accent') }}<input type="text" name="accent" placeholder="{{ t('voices.keep') }}" autocomplete="off"></label>
+    <label class="vfield">{{ t('voices.col_tags') }}<input type="text" name="tags" placeholder="{{ t('voices.keep') }}" autocomplete="off" spellcheck="false"></label>
+    <button class="btn btn-primary" type="submit" data-import-submit data-label-n="{{ t('voices.import_n') }}">{{ t('voices.import_n', n=scan.new|length) }}</button>
+  </fieldset>
+  <div class="panel voice-table">
+    <div class="i-row v-head"><input type="checkbox" checked data-check-all aria-label="{{ t('voices.select_all') }}"><span>{{ t('voices.col_name') }}</span><span>{{ t('voices.col_gender') }}</span><span>{{ t('voices.col_lang') }}</span><span class="right">{{ t('voices.col_length') }}</span><span>{{ t('voices.col_tags') }}</span><span>{{ t('voices.col_folder') }}</span></div>
+    {% for c in scan.new %}
+    <label class="i-row">
+      <input type="checkbox" name="path" value="{{ c.stored_path }}" checked aria-label="{{ t('voices.select', name=c.name) }}">
+      <span class="v-name ellipsis">{{ c.name }}</span>
+      <span class="sub">{{ t_or('voices.gender_' ~ c.gender, c.gender or '—') }}</span>
+      <span class="num">{{ c.language or '—' }}</span>
+      <span class="num right">{{ dur(c.duration_seconds) }}</span>
+      <span class="tags">{% for tag in c.tags %}<span class="tag">{{ tag }}</span>{% endfor %}</span>
+      <span class="num sub ellipsis" title="{{ c.stored_path }}">{{ c.stored_path.rsplit('/', 1)[0] }}</span>
+    </label>
+    {% endfor %}
+  </div>
+</form>
+{% else %}
+<p class="empty">{{ t('voices.scan_nothing') }}</p>
+{% endif %}

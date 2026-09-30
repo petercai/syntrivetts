@@ -1,0 +1,16 @@
+<dialog aria-labelledby="delete-heading">
+  <h2 id="delete-heading">{{ t('books.delete_heading') }}</h2>
+  <p>{{ t('books.delete_what', title=preview.title, jobs=preview.job_count, size=preview.size_bytes|size) }}</p>
+  <ul class="sub mono" style="margin:0 0 14px;padding-left:18px">
+    {% for folder in preview.folders %}<li>{{ folder }}</li>{% endfor %}
+  </ul>
+  <form hx-post="/api/v1/books/{{ preview.job_id }}/delete">
+    <label for="confirm-title">{{ t('books.delete_type_title') }} <strong class="cjk">{{ preview.title }}</strong></label>
+    <input id="confirm-title" type="text" name="confirm_title" autocomplete="off" spellcheck="false"
+           data-match="{{ preview.title }}" data-match-target="confirm-delete">
+    <div class="btn-row">
+      <button type="button" class="btn" data-close-dialog>{{ t('common.cancel') }}</button>
+      <button id="confirm-delete" type="submit" class="btn btn-danger" disabled>{{ t('books.delete_confirm') }}</button>
+    </div>
+  </form>
+</dialog>

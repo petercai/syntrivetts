@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://syntrive.local/contract/job.schema.json",
+  "title": "SyntriveTTS job manifest (job.json)",
+  "description": "Written by SyntriveTTS into each job's process_dir. Replaces the legacy stage.json. Every path is POSIX-relative to the folder containing this file; absolute paths are never emitted. Owner: SyntriveTTS (syntrive/contract/). Consumers (SyntriveCMS, publisher, AI agents) vendor a copy and must check schema_version.",
+  "type": "object",
+  "required": ["schema", "schema_version", "generator", "generated_at", "content_sha256", "job", "book", "paths", "images", "chapters", "summary"],
+  "additionalProperties": true,
+  "$defs": {
+    "relPath": {
+      "description": "POSIX path relative to process_dir; never absolute, never a Windows drive path.",
+      "type": ["string", "null"],
+      "pattern": "^(?![A-Za-z]:)(?![/\\\\])[^\\\\]*$"
+    },
+    "nullableString": {"type": ["string", "null"]},
+    "timestamp": {"type": ["string", "null"], "description": "ISO-8601 UTC with trailing Z"}
+  },
+  "properties": {
+    "schema": {"const": "syntrive.job"},
+    "schema_version": {"type": "integer", "minimum": 1},
+    "generator": {"type": "string"},
+    "generated_at": {"$ref": "#/$defs/timestamp"},
+    "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "sha256 of the manifest without generated_at/content_sha256; changes only when content changes"},
+    "job": {
+      "type": "object",
+      "required": ["id", "status", "current_step", "created_at", "updated_at"],
+      "additionalProperties": true,
+      "properties": {
+        "id": {"type": "integer"},
+        "status": {"$ref": "#/$defs/nullableString"},
+        "current_step": {"$ref": "#/$defs/nullableString"},
+        "created_at": {"$ref": "#/$defs/timestamp"},
+        "updated_at": {"$ref": "#/$defs/timestamp"},
+        "archived_at": {"$ref": "#/$defs/timestamp", "description": "set when the job is soft-deleted (archived); consumers such as CMS should unpublish; null = active"}
+      }
+    },
+    "book": {
+      "type": "object",
+      "required": ["id", "title", "author", "publisher", "language", "publish_date", "original_filename", "cover"],
+      "additionalProperties": true,
+      "properties": {
+        "id": {"type": "integer"},
+        "title": {"type": "string"},
+        "author": {"$ref": "#/$defs/nullableString"},
+        "publisher": {"$ref": "#/$defs/nullableString"},
+        "language": {"$ref": "#/$defs/nullableString", "description": "ISO 639-1, e.g. en / zh"},
+        "publish_date": {"$ref": "#/$defs/nullableString"},
+        "original_filename": {"$ref": "#/$defs/nullableString"},
+        "cover": {"$ref": "#/$defs/relPath"}
+      }
+    },
+    "paths": {
+      "type": "object",
+      "required": ["source", "audiobooks_dir", "chapter_audio_dir", "sentence_audio_dir", "transcript_dir", "publish_toc"],
+      "additionalProperties": true,
+      "properties": {
+        "source": {"$ref": "#/$defs/relPath", "description": "original ebook file (epub today; txt/pdf/html/docx after phase 5)"},
+        "audiobooks_dir": {"$ref": "#/$defs/relPath"},
+        "chapter_audio_dir": {"$ref": "#/$defs/relPath"},
+        "sentence_audio_dir": {"$ref": "#/$defs/relPath"},
+        "transcript_dir": {"$ref": "#/$defs/relPath"},
+        "publish_toc": {"$ref": "#/$defs/relPath", "description": "0_toc_publish.md (publish metadata; may not exist yet)"}
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path", "type"],
+        "additionalProperties": true,
+        "properties": {
+          "name": {"$ref": "#/$defs/nullableString"},
+          "path": {"$ref": "#/$defs/relPath"},
+          "type": {"$ref": "#/$defs/nullableString", "description": "cover | internal"}
+        }
+      }
+    },
+    "chapters": {
+      "type": "array",
+      "description": "Output chapters ordered by sequence. sequence is the join key for 0_toc_publish.md, feeds and CMS.",
+      "items": {
+        "type": "object",
+        "required": ["sequence", "chapter_id", "volume_number", "volume", "chapter_number", "chapter_name", "title", "transcript_path", "audio_path", "audio_seconds", "synthesis_status"],
+        "additionalProperties": true,
+        "properties": {
+          "sequence": {"type": "string", "pattern": "^[0-9]{4,}$"},
+          "chapter_id": {"type": "string"},
+          "volume_number": {"$ref": "#/$defs/nullableString"},
+          "volume": {"$ref": "#/$defs/nullableString"},
+          "chapter_number": {"$ref": "#/$defs/nullableString"},
+          "chapter_name": {"$ref": "#/$defs/nullableString"},
+          "title": {"$ref": "#/$defs/nullableString"},
+          "transcript_path": {"$ref": "#/$defs/relPath"},
+          "audio_path": {"$ref": "#/$defs/relPath", "description": "final chapter m4a; null until synthesized"},
+          "audio_seconds": {"type": ["number", "null"]},
+          "synthesis_status": {"$ref": "#/$defs/nullableString"}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["chapter_count", "unsequenced_chapter_count", "chapters_with_audio", "total_audio_seconds"],
+      "additionalProperties": true,
+      "properties": {
+        "chapter_count": {"type": "integer", "minimum": 0},
+        "unsequenced_chapter_count": {"type": "integer", "minimum": 0},
+        "chapters_with_audio": {"type": "integer", "minimum": 0},
+        "total_audio_seconds": {"type": "number", "minimum": 0}
+      }
+    }
+  }
+}

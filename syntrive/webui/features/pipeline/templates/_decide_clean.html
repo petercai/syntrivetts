@@ -1,0 +1,6 @@
+{% if selection.available %}
+<p class="decision-summary">
+  {{ t('pipeline.clean_selection', kept=selection.chapters|length - selection.excluded_count, total=selection.chapters|length) }}
+  <a href="/pipeline/{{ job_id }}?step=transcript_merge">{{ t('pipeline.change') }}</a>
+</p>
+{% endif %}

@@ -1,0 +1,54 @@
+{% extends "shared/base.html" %}
+{% from "shared/macros.html" import track_full, cover, step_name %}
+{% block title %}{{ row.title }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/pipeline/pipeline.css">
+<script src="/static/pipeline/pipeline.js" defer></script>
+{% endblock %}
+{% block content %}
+<p class="sub" style="margin:0 0 12px"><a href="/books">{{ t('nav.books') }}</a> <span aria-hidden="true">/</span></p>
+<div class="book-head">
+  {{ cover(row.job_id, row, large=True) }}
+  <div>
+    <h1 class="cjk">{{ row.title }}</h1>
+    <div class="meta">
+      <span class="cjk">{{ row.author or t('books.unknown_author') }}</span>
+      {% if row.language %}<span class="lang-tag">{{ row.language }}</span>{% endif %}
+      <span class="status-pill {{ 'done' if view.finished else 'current' }}"><span class="num">{{ view.current_number }}/9</span> {{ step_name(view, t) }}</span>
+      {% if row.archived %}<span class="status-pill">{{ t('pipeline.archived') }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="actions btn-row">
+    {% if row.archived %}
+    <button class="btn" type="button" hx-post="/api/v1/books/{{ row.job_id }}/restore" hx-vals='{"after": "refresh"}'>{{ t('books.restore') }}</button>
+    {% else %}
+    <details class="menu">
+      <summary aria-label="{{ t('books.actions_for', title=row.title) }}">•••</summary>
+      <div class="menu-items">
+        <button type="button" hx-post="/api/v1/books/{{ row.job_id }}/archive" hx-vals='{"after": "refresh"}'>{{ t('books.archive') }}</button>
+        <button type="button" class="danger" hx-get="/api/v1/books/{{ row.job_id }}/delete" hx-target="#dialog-host">{{ t('books.delete') }}</button>
+      </div>
+    </details>
+    {% endif %}
+  </div>
+</div>
+{% if row.archived %}
+<div class="flash" role="status" style="margin-top:16px"><p>{{ t('pipeline.archived_notice') }}</p></div>
+{% endif %}
+
+{{ track_full(view, t, row.job_id, selected.step) }}
+
+<nav class="tabs" aria-label="{{ t('pipeline.tabs_label') }}">
+  {% for key in ['step', 'chapters', 'metadata', 'activity'] %}
+  <a class="tab" href="/pipeline/{{ row.job_id }}?step={{ selected.step.value }}&tab={{ key }}" {% if key == tab %}aria-current="page"{% endif %}>
+    {{ t('pipeline.tab_' ~ key) }}{% if key == 'chapters' %}<span class="num">{{ row.chapter_count }}</span>{% endif %}
+  </a>
+  {% endfor %}
+</nav>
+<div class="tab-body">
+  {% if tab == 'step' %}{% include "pipeline/_step.html" %}
+  {% elif tab == 'chapters' %}{% include "pipeline/_chapters.html" %}
+  {% elif tab == 'metadata' %}{% include "pipeline/_metadata.html" %}
+  {% else %}{% include "pipeline/_activity.html" %}{% endif %}
+</div>
+{% endblock %}

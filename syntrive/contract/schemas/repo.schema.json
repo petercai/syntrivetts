@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://syntrive.local/contract/repo.schema.json",
+  "title": "SyntriveTTS repo manifest (repo.json)",
+  "description": "Written by SyntriveTTS into repo_dir (the folder containing syntrivetts.db). Index of every book/job; the entry point for SyntriveCMS scanning. Every path is POSIX-relative to repo_dir. Owner: SyntriveTTS (syntrive/contract/).",
+  "type": "object",
+  "required": ["schema", "schema_version", "generator", "generated_at", "content_sha256", "db_file", "jobs"],
+  "additionalProperties": true,
+  "$defs": {
+    "relPath": {
+      "type": "string",
+      "pattern": "^(?![A-Za-z]:)(?![/\\\\])[^\\\\]*$"
+    },
+    "nullableString": {"type": ["string", "null"]}
+  },
+  "properties": {
+    "schema": {"const": "syntrive.repo"},
+    "schema_version": {"type": "integer", "minimum": 1},
+    "generator": {"type": "string"},
+    "generated_at": {"$ref": "#/$defs/nullableString"},
+    "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "db_file": {"type": "string", "description": "SyntriveTTS-private DB filename; informational only, consumers must not open it"},
+    "jobs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["job_id", "book_id", "title", "author", "language", "process_dir", "job_manifest", "status", "current_step", "updated_at"],
+        "additionalProperties": true,
+        "properties": {
+          "job_id": {"type": "integer"},
+          "book_id": {"type": "integer"},
+          "title": {"type": "string"},
+          "author": {"$ref": "#/$defs/nullableString"},
+          "language": {"$ref": "#/$defs/nullableString"},
+          "process_dir": {"$ref": "#/$defs/relPath"},
+          "job_manifest": {"$ref": "#/$defs/relPath", "description": "<process_dir>/job.json"},
+          "status": {"$ref": "#/$defs/nullableString"},
+          "current_step": {"$ref": "#/$defs/nullableString"},
+          "updated_at": {"$ref": "#/$defs/nullableString"},
+          "archived": {"type": "boolean", "description": "true when the job is soft-deleted; consumers should unpublish"},
+          "archived_at": {"$ref": "#/$defs/nullableString"}
+        }
+      }
+    }
+  }
+}

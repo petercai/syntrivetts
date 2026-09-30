@@ -1,0 +1,23 @@
+<section id="model-activity" class="panel activity" aria-labelledby="activity-title"
+         {% if busy %}hx-get="/api/v1/models/activity?busy=1" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+  <div class="activity-head">
+    <h2 id="activity-title">{{ t('models.activity') }}</h2>
+    <span class="sub">{{ t('models.activity_rule', running=tasks|selectattr('state', 'equalto', 'running')|list|length, queued=tasks|selectattr('state', 'equalto', 'queued')|list|length) }}</span>
+  </div>
+  {% if not tasks %}
+  <p class="sub activity-empty">{{ t('models.activity_empty') }}</p>
+  {% else %}
+  <div class="tasks">
+    {% for task in tasks %}
+    <div class="task">
+      <span class="task-state is-{{ task.state }}">{{ t('models.task_' ~ task.state) }}</span>
+      <span class="num ellipsis">{{ task.name }}</span>
+      <span class="sub ellipsis" title="{{ task.summary }}">{{ task.summary }}</span>
+    </div>
+    {% if task.state in ('running', 'failed') and task.log %}
+    <pre class="task-log">{{ task.log[-12:]|join('\n') }}</pre>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>

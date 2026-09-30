@@ -1,0 +1,24 @@
+{% extends "shared/base.html" %}
+{% block title %}{{ t('books.title') }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t('books.title') }}</h1>
+    <p class="lede">{{ t('books.lede') }}</p>
+  </div>
+  <div class="btn-row">
+    <label class="visually-hidden" for="book-search">{{ t('books.search') }}</label>
+    <input id="book-search" class="search" type="search" name="q" value="{{ q }}" placeholder="{{ t('books.search') }}"
+           hx-get="/api/v1/books/rows" hx-trigger="input changed delay:250ms, search" hx-target="#books-panel"
+           hx-vals='{{ {"tab": tab}|tojson }}'>
+    <form hx-post="/api/v1/books" hx-encoding="multipart/form-data" hx-indicator="#upload-busy" class="btn-row">
+      <span id="upload-busy" class="htmx-indicator run-state muted"><span class="spinner" aria-hidden="true"></span>{{ t('books.importing') }}</span>
+      <label class="btn btn-primary" for="epub-input" tabindex="0"
+             onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">{{ t('books.add') }}</label>
+      <input id="epub-input" class="visually-hidden" type="file" name="file" accept=".epub,application/epub+zip"
+             onchange="if (this.files.length) this.form.requestSubmit()">
+    </form>
+  </div>
+</div>
+<div id="books-panel">{% include "books/_panel.html" %}</div>
+{% endblock %}

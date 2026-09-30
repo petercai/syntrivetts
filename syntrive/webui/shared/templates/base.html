@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="{{ 'zh-CN' if lang == 'zh' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} · SyntriveTTS</title>
+  <link rel="icon" href="/static/shared/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/shared/tokens.css">
+  <link rel="stylesheet" href="/static/shared/app.css">
+  <script src="/static/shared/vendor/htmx.min.js" defer></script>
+  <script src="/static/shared/app.js" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% set sb = sidebar() %}
+<aside class="sidebar" aria-label="{{ t('nav.label') }}">
+  <a class="mark" href="/books">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke-width="2" style="stroke: var(--cue)" aria-hidden="true">
+      <path d="M2 11h3M7 6v10M11 3v16M15 7v8M19 10v2"/>
+    </svg>
+    <span>SyntriveTTS</span>
+  </a>
+  {% for section in ('main', 'library', 'maintenance') %}
+  {% set entries = sb['items']|selectattr('item.section', 'equalto', section)|list %}
+  {% if entries %}
+  {% if section != 'main' %}<div class="nav-label">{{ t('nav.section_' ~ section) }}</div>{% endif %}
+  <ul class="nav-list">
+    {% for entry in entries %}
+    <li><a class="nav-link" href="{{ entry.item.href }}" {% if entry.active %}aria-current="page"{% endif %}>
+      <span>{{ t(entry.item.label_key) }}</span>
+      {% if entry.count is not none %}<span class="nav-count{{ ' is-accent' if entry.item.accent and entry.count }}">{{ entry.count }}</span>{% endif %}
+    </a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endfor %}
+  {% if sb['peers'].get('audio_review') %}
+  <a class="nav-link peer-link" href="{{ sb['peers']['audio_review'] }}" target="_blank" rel="noopener">
+    <span style="display:flex;align-items:center;gap:8px"><span class="live-dot" aria-hidden="true"></span>{{ t('nav.audio_review') }}</span>
+    <span class="nav-count" aria-hidden="true">↗</span>
+  </a>
+  {% endif %}
+  <div class="sidebar-foot">
+    <div>
+      <div style="color:var(--sidebar-ink-2)">{{ t('repo.current') }}</div>
+      <div class="repo-name" title="{{ web.repo_dir }}">{{ web.repo_dir.name }}</div>
+    </div>
+    <details>
+      <summary>{{ t('repo.switch') }}</summary>
+      <form hx-post="/api/v1/repo/switch">
+        <label class="visually-hidden" for="repo-dir-input">{{ t('repo.path_label') }}</label>
+        <input id="repo-dir-input" type="text" name="repo_dir" placeholder="{{ t('repo.path_placeholder') }}" required autocomplete="off" spellcheck="false">
+        <button class="btn" type="submit">{{ t('repo.open') }}</button>
+      </form>
+    </details>
+    <form class="lang-switch" hx-post="/api/v1/repo/lang" role="group" aria-label="{{ t('lang.label') }}">
+      <button type="submit" name="lang" value="zh" aria-pressed="{{ 'true' if lang == 'zh' else 'false' }}">中文</button>
+      <button type="submit" name="lang" value="en" aria-pressed="{{ 'true' if lang == 'en' else 'false' }}">EN</button>
+    </form>
+  </div>
+</aside>
+<main>
+  <div id="flash" aria-live="polite">{% block flash %}{% endblock %}</div>
+  {% block content %}{% endblock %}
+</main>
+<div id="dialog-host"></div>
+</body>
+</html>

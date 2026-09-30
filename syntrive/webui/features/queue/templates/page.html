@@ -1,0 +1,103 @@
+{% extends "shared/base.html" %}
+{% block title %}{{ t('queue.title') }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/queue/queue.css">
+<script src="/static/queue/queue.js" defer></script>
+{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t('queue.title') }}</h1>
+    <p class="lede">{{ t('queue.lede', queued=overview.runnable_count, paused=overview.queue|length - overview.runnable_count, failed=overview.stuck|length) }}</p>
+  </div>
+  <form class="start-form" hx-post="/api/v1/queue/start">
+    {% if selected_id %}<input type="hidden" name="book" value="{{ selected_id }}">{% endif %}
+    <div class="start-row">
+      <label class="offline-check" title="{{ t('queue.offline_hint') }}">
+        <input type="checkbox" name="offline" value="1" {% if offline.checked %}checked{% endif %}
+               {% if offline.locked or overview.running %}disabled{% endif %}>
+        <span>{{ t('queue.offline') }} <span class="mono sub">--offline</span></span>
+      </label>
+      <button class="btn btn-primary" type="submit" {% if overview.running %}disabled title="{{ t('queue.start_running') }}"{% endif %}
+              hx-confirm="{{ t('queue.start_confirm') }}">{{ t('queue.start') }}</button>
+    </div>
+    {% if offline.source %}<span class="sub offline-note">{{ t('queue.offline_source_' ~ offline.source) }}</span>{% endif %}
+  </form>
+</div>
+
+{% if notice %}
+{% set parts = notice.split(':') %}
+<div class="flash flash-ok" role="status"><p>{{ t('queue.notice_' ~ parts[0], a=parts[1] if parts|length > 1 else '', b=parts[2] if parts|length > 2 else '', c=parts[3] if parts|length > 3 else '') }}</p></div>
+{% endif %}
+
+{% include "queue/_now.html" %}
+
+{% if not overview.books %}
+<p class="empty">{{ t('queue.no_books') }}</p>
+{% else %}
+<div class="queue-layout">
+  <nav class="panel book-list" aria-label="{{ t('queue.books_label') }}">
+    <div class="book-list-head sub">{{ t('queue.books_head') }}</div>
+    {% for b in overview.books %}
+    {% set queued = b.counts.get('queued', 0) + b.counts.get('synthesizing', 0) + b.counts.get('combining', 0) %}
+    {% set not_ready = [b.chapters - b.done - queued - b.schedulable, 0]|max %}
+    <a class="book-item" href="/queue?book={{ b.job_id }}" {% if b.job_id == selected_id %}aria-current="page"{% endif %}>
+      <span class="book-item-head"><strong class="cjk">{{ b.title }}</strong><span class="num sub">{{ b.chapters }}</span></span>
+      <span class="stack" role="img" aria-label="{{ t('queue.stack_aria', done=b.done, queued=queued, ready=b.schedulable, not_ready=not_ready) }}">
+        {% for part, n in (('done', b.done), ('queued', queued), ('ready', b.schedulable)) %}{% if n %}<span class="stack-{{ part }}" style="width: {{ (100 * n / b.chapters)|round(2) }}%"></span>{% endif %}{% endfor %}
+      </span>
+      <span class="sub">{{ t('queue.book_counts', done=b.done, queued=queued, ready=b.schedulable, not_ready=not_ready) }}</span>
+    </a>
+    {% endfor %}
+  </nav>
+
+  {% if book_queue %}
+  <section class="book-queue" aria-labelledby="book-queue-title">
+    <div class="view-switch" role="tablist" aria-label="{{ t('queue.view_label') }}">
+      <a role="tab" href="/queue?book={{ book_queue.job_id }}" aria-selected="{{ 'true' if view == 'chapters' else 'false' }}">{{ t('queue.view_chapters') }}</a>
+      <a role="tab" href="/queue?book={{ book_queue.job_id }}&view=history" aria-selected="{{ 'true' if view == 'history' else 'false' }}">{{ t('queue.view_history', n=history|length) }}</a>
+    </div>
+    {% if view == 'history' %}
+    <h2 id="book-queue-title" class="cjk">{{ book_queue.title }}</h2>
+    {% include "queue/_history.html" %}
+    {% else %}
+    <form id="queue-form" data-queue-form>
+      <input type="hidden" name="book" value="{{ book_queue.job_id }}">
+      <div class="queue-bar">
+        <h2 id="book-queue-title" class="cjk">{{ book_queue.title }}</h2>
+        <span class="grow"></span>
+        <button class="btn" type="button" data-select-ready>{{ t('queue.select_ready') }}</button>
+        <button class="btn" type="button" hx-post="/api/v1/queue/pause" data-applies="pause">{{ t('queue.pause') }}</button>
+        <button class="btn" type="button" hx-post="/api/v1/queue/resume" data-applies="resume">{{ t('queue.resume') }}</button>
+        <button class="btn btn-primary" type="button" hx-post="/api/v1/queue/enqueue" data-enqueue
+                data-label-n="{{ t('queue.enqueue_n') }}" data-label="{{ t('queue.enqueue') }}">{{ t('queue.enqueue_n', n=preselect|length) if preselect else t('queue.enqueue') }}</button>
+      </div>
+      {% if book_queue.book_reason %}<div class="flash" role="status"><p>{{ t('queue.book_reason_' ~ book_queue.book_reason) }}</p></div>{% endif %}
+      <div class="panel">
+        <div class="q-row q-head"><span></span><span>#</span><span>{{ t('queue.col_chapter') }}</span><span class="right">{{ t('queue.col_lines') }}</span><span>{{ t('queue.col_status') }}</span><span>{{ t('queue.col_detail') }}</span></div>
+        {% for c in book_queue.chapters %}
+        {% set shown = 'paused' if c.paused and c.status != 'done' else ('ready' if c.ready else ('not_ready' if c.status == 'pending' and not c.batch_id else c.status)) %}
+        <label class="q-row{{ ' is-muted' if not c.action }}">
+          <input type="checkbox" name="chapter" value="{{ c.chapter_db_id }}" data-action="{{ c.action or '' }}"
+                 {% if not c.action %}disabled{% endif %} {% if c.chapter_db_id in preselect %}checked{% endif %}
+                 aria-label="{{ t('queue.select_ch', title=c.title) }}">
+          <span class="num sub">{{ c.sequence }}</span>
+          <span class="cjk ellipsis">{{ c.title }}</span>
+          <span class="num right">{{ c.lines if c.lines is not none else '—' }}</span>
+          <span class="q-status q-{{ shown }}">{{ t('queue.status_' ~ shown) }}</span>
+          <span class="sub">
+            {% if c.error and c.status != 'done' %}<span class="q-error">{{ t('queue.detail_error', line=c.failed_line if c.failed_line is not none else '?', error=c.error) }}</span>
+            {% elif c.status == 'done' and c.audio_seconds %}{{ t('queue.detail_audio', m=(c.audio_seconds // 60)|int, s='%02d'|format((c.audio_seconds % 60)|int)) }}
+            {% elif c.reason and c.reason not in ('in_batch', 'done') %}{{ t('queue.reason_' ~ c.reason) }}
+            {% elif c.batch_id %}<span class="num">#{{ c.batch_id }}</span>{% endif %}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+    </form>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "shared/base.html" %}
+{% block title %}{{ t('models.title') }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/models/models.css">
+<script src="/static/models/models.js" defer></script>
+{% endblock %}
+{% set glyphs = {'ready': '●', 'missing': '○', 'attention': '▲', 'unverified': '◐'} %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t('models.title') }}</h1>
+    <p class="lede">{{ t('models.lede', done=counts[0], total=counts[1], size=cache_bytes|size) }}</p>
+  </div>
+  <form class="device-form" hx-post="/api/v1/models/device" hx-trigger="change">
+    <label for="device-select" class="sub">{{ t('models.device') }}</label>
+    <select id="device-select" name="device" title="{{ t('models.device_hint', detected=detected) }}">
+      {% for d in devices %}<option value="{{ d }}" {% if d == device %}selected{% endif %}>{{ d }}{{ ' ·' ~ t('models.detected') if d == detected }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+{% if notice %}
+{% set parts = notice.split(':', 1) %}
+<div class="flash flash-ok" role="status"><p>{{ t('models.notice_' ~ parts[0], a=parts[1] if parts|length > 1 else '') }}</p></div>
+{% endif %}
+{% if offline %}
+<div class="flash" role="status"><p>{{ t('models.offline_banner') }}</p></div>
+{% endif %}
+
+<div class="panel engines">
+  {% for g in groups %}
+  {% set env_busy = ('env:' ~ g.engine) in busy %}
+  <details class="engine" {% if g.engine in open %}open{% endif %}>
+    <summary class="engine-head">
+      <span class="caret" aria-hidden="true"></span>
+      <strong>{{ g.label }}</strong>
+      <span class="num sub">{{ t('models.engine_counts', done=g.downloaded, total=g.models, size=g.size_bytes|size) }}</span>
+      {% if g.env_ready is none %}<span class="sub">{{ t('models.env_none') }}</span>
+      {% else %}<span class="env-chip {{ 'is-ready' if g.env_ready else 'is-missing' }}">{{ t('models.env_ready') if g.env_ready else t('models.env_missing') }}</span>{% endif %}
+      <span class="grow"></span>
+      {% if g.has_venv %}
+      <button class="btn btn-sm" type="button" hx-post="/api/v1/models/{{ g.engine }}/provision"
+              hx-confirm="{{ t('models.env_confirm', engine=g.label, device=device) }}"
+              {% if offline or env_busy %}disabled title="{{ t('models.offline_hint') if offline else t('models.busy_hint') }}"{% endif %}>
+        {{ t('models.env_update') if g.env_ready else t('models.env_setup') }}</button>
+      {% endif %}
+    </summary>
+    {% for r in g.rows %}
+    {% set status = row_status(r) %}
+    {% set row_busy = row_keys(r)|select('in', busy)|list %}
+    {% set local = status != 'missing' %}
+    {% set base = '/api/v1/models/' ~ r.engine ~ '/' ~ r.model_id %}
+    {% set lock = t('models.offline_hint') if offline else '' %}
+    <div class="m-row">
+      <span class="dot is-{{ status }}" title="{{ t('models.status_' ~ status) }}" aria-label="{{ t('models.status_' ~ status) }}">{{ glyphs[status] }}</span>
+      <span class="m-name">{{ r.label }}{% if r.is_default %} <span class="tag">{{ t('models.default') }}</span>{% endif %}{% if r.kind == 'resource' %} <span class="tag">{{ t('models.resource') }}</span>{% endif %}</span>
+      <span class="num sub ellipsis" title="{{ r.detail_line }}">{{ r.detail_line }}</span>
+      <span class="m-actions">
+        {% if row_busy %}
+        <span class="busy-note"><span class="spinner" aria-hidden="true"></span>{{ t('models.row_busy') }}</span>
+        {% elif not local %}
+        <button class="btn btn-sm btn-primary" type="button" {% if offline %}disabled title="{{ lock }}"{% endif %}
+                {% if r.kind == 'resource' %}hx-post="{{ base }}/download"{% else %}hx-get="{{ base }}/confirm" hx-target="#dialog-host"{% endif %}>{{ t('models.download') }}</button>
+        {% else %}
+        {% if r.kind == 'model' %}<button class="btn btn-sm" type="button" hx-post="{{ base }}/check" {% if offline %}disabled title="{{ lock }}"{% endif %}>{{ t('models.check') }}</button>{% endif %}
+        <button class="btn btn-sm" type="button" hx-post="{{ base }}/update" {% if offline %}disabled title="{{ lock }}"{% endif %}>{{ t('models.update') }}</button>
+        {% if r.kind == 'model' %}<button class="btn btn-sm btn-quiet" type="button" hx-get="{{ base }}/files" hx-target="next .files-slot" data-files-toggle>{{ t('models.files') }}</button>{% endif %}
+        <button class="btn btn-sm btn-quiet danger-text" type="button" hx-post="{{ base }}/remove" hx-confirm="{{ t('models.remove_confirm', item=r.engine ~ '/' ~ r.model_id) }}">{{ t('models.remove') }}</button>
+        {% endif %}
+      </span>
+    </div>
+    <div class="files-slot"></div>
+    {% endfor %}
+    {% if g.finetuned %}
+    <div class="finetuned sub">{{ t('models.finetuned') }} {% for name in g.finetuned %}<span class="tag">{{ name }}</span>{% endfor %}</div>
+    {% endif %}
+  </details>
+  {% endfor %}
+</div>
+
+{% include "models/_activity.html" %}
+{% endblock %}

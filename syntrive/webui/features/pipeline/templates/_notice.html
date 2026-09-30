@@ -1,0 +1,15 @@
+{% if notice.startswith('stale:') %}
+{% set stale = view.steps | selectattr('step.value', 'equalto', notice[6:]) | first %}
+{% if stale %}
+<div class="flash" role="status">
+  <p>{{ t('pipeline.notice_stale', step=t('step.' ~ stale.step.value)) }}</p>
+  {% if stale.state.value == 'done' and not row.archived %}
+  <div class="btn-row">
+    <button class="btn btn-primary" type="button" hx-post="/api/v1/pipeline/{{ job_id }}/rerun" hx-vals='{{ {"step": stale.step.value}|tojson }}'>{{ t('pipeline.rerun', step=t('step.' ~ stale.step.value)) }}</button>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% elif notice in ('saved', 'unchanged') %}
+<div class="flash flash-ok" role="status"><p>{{ t('pipeline.notice_' ~ notice) }}</p></div>
+{% endif %}

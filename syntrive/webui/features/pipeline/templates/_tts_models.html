@@ -1,0 +1,8 @@
+{% set current = current_model if current_model is defined else (tts.values.model if tts is defined else '') %}
+{% set choices = model_choices if model_choices is defined else tts.model_choices %}
+<select id="model-select" name="model">
+  <option value="" {% if not current %}selected{% endif %}>{{ t('pipeline.tts_model_default') }}</option>
+  {% for model_id, label in choices %}
+  <option value="{{ model_id }}" {% if current == model_id %}selected{% endif %}>{{ label }}</option>
+  {% endfor %}
+</select>

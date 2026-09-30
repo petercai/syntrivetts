@@ -1,0 +1,9 @@
+<div class="reader-file mono sub">{{ fmt }}/{{ file }}</div>
+<div class="reader-text cjk">
+  {% for line in lines %}
+  <p>{% for piece in line %}{% if piece.marker %}<span class="chip {{ 'chip-voice' if piece.text.startswith('voice') else 'chip-mark' }}">{{ piece.text | replace(':', ' ') }}</span>{% else %}{{ piece.text }}{% endif %}{% endfor %}</p>
+  {% else %}
+  <p class="sub">{{ t('pipeline.review_empty_file') }}</p>
+  {% endfor %}
+  {% if truncated %}<p class="sub">{{ t('pipeline.review_truncated') }}</p>{% endif %}
+</div>

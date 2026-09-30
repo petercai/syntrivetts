@@ -1,0 +1,5 @@
+{
+  "repo.not_a_repo": "“{path}” is not a SyntriveTTS repo: it has no syntrivetts.db. Enter the folder you pass to syntrive.py -r.",
+  "repo.busy": "A step is still running in this repo. Switch after it finishes.",
+  "repo.already_served": "Another WebUI already serves that repo. Open it there: {url}"
+}

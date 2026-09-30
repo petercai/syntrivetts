@@ -1,0 +1,90 @@
+{% from "pipeline/_tts_field.html" import field with context %}
+{% set v = tts.values %}
+{% set editable = not row.archived and selected.state.value != 'later' %}
+<div class="review-head">
+  <h2><span class="num">{{ selected.number }}/9</span>{{ t('step.' ~ step.value) }}</h2>
+  <p class="step-about">{{ t('pipeline.about.' ~ step.value) }}</p>
+</div>
+{% if run and run.step == step and (run.running or run.result) %}
+<div id="run-panel">{% with can_run = false %}{% include "pipeline/_run_panel.html" %}{% endwith %}</div>
+{% endif %}
+
+<form id="tts-form" class="tts" hx-post="/api/v1/pipeline/{{ job_id }}/tts-settings" data-dirty-form novalidate>
+  <fieldset class="tts-fields" {% if not editable %}disabled{% endif %}>
+    <legend class="visually-hidden">{{ t('step.tts_config') }}</legend>
+    <div class="tts-head">
+      {% for p in tts_header %}{{ field(p, v, t_or, job_id) }}{% endfor %}
+    </div>
+
+    <div class="subtabs" role="tablist" aria-label="{{ t('pipeline.tts_sections') }}">
+      <button type="button" role="tab" aria-selected="true" data-subtab="cast">{{ t('pipeline.tts_cast') }}</button>
+      <button type="button" role="tab" aria-selected="false" data-subtab="output">{{ t('pipeline.tts_output') }}</button>
+      <button type="button" role="tab" aria-selected="false" data-subtab="tuning">{{ t('pipeline.tts_tuning') }}</button>
+    </div>
+
+    <section data-subpanel="cast" class="cast">
+      {% if not tts.voices %}
+      <p class="sub">{{ t('pipeline.tts_no_voices') }}</p>
+      {% else %}
+      <div class="panel cast-list">
+        <div class="cast-head sub">{{ t('pipeline.tts_cast_head', n=tts.voices|length) }}</div>
+        {% for voice in tts.voices %}
+        <div class="cast-role{{ ' is-active' if loop.first }}" data-role="{{ voice.id }}" data-role-name="{{ voice.name }}">
+          <button type="button" class="cast-pick" data-select-role="{{ voice.id }}">
+            <span class="cast-name cjk"><strong>{{ voice.name }}</strong>{% if voice.is_narrator and voice.name != 'narrator' %} <span class="sub">{{ t('pipeline.tts_narrator') }}</span>{% endif %}<span class="num sub">{{ t('pipeline.tts_voice_n', n=voice.voice_id) }}</span></span>
+            <span class="sub" data-bound-label>{{ tts_ref_labels.get(voice.reference_voice_id, t('pipeline.tts_unbound')) }}</span>
+          </button>
+          <input type="hidden" name="voice_{{ voice.id }}" value="{{ voice.reference_voice_id or '' }}">
+          {% if not voice.is_narrator %}
+          <label class="cast-exclude sub"><input type="checkbox" name="exclude_{{ voice.id }}" value="1" {% if voice.excluded %}checked{% endif %}> {{ t('pipeline.tts_exclude') }}</label>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <section class="panel voice-list" aria-label="{{ t('pipeline.tts_voice_list') }}">
+        <div class="voice-head">
+          <strong>{{ t('pipeline.tts_voice_for') }} <span class="cjk" data-active-role-name>{{ tts.voices[0].name }}</span></strong>
+          <span class="grow"></span>
+          <span class="chips" role="group" aria-label="{{ t('pipeline.tts_gender') }}">
+            <button type="button" class="chip-btn" aria-pressed="true" data-gender="">{{ t('pipeline.tts_all') }}</button>
+            {% for g in tts_genders %}<button type="button" class="chip-btn" aria-pressed="false" data-gender="{{ g }}">{{ t_or('pipeline.tts_gender_' ~ g, g) }}</button>{% endfor %}
+          </span>
+          <span class="num sub">{{ t('pipeline.tts_voices_count', n=tts.references|length, language=v.language) }}</span>
+        </div>
+        {% if not tts.references %}<p class="sub" style="padding: 12px 14px">{{ t('pipeline.tts_no_refs', language=v.language) }}</p>{% endif %}
+        {% for r in tts.references %}
+        <div class="voice-row" data-ref="{{ r.id }}" data-gender="{{ r.gender }}" data-label="{{ r.label }}">
+          <button type="button" class="play" data-play="/api/v1/pipeline/{{ job_id }}/voices/{{ r.id }}/audio" aria-label="{{ t('pipeline.tts_play', name=r.name) }}">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="currentColor"></path></svg></button>
+          <span class="voice-name">{{ r.name }}</span>
+          <span class="sub">{{ t_or('pipeline.tts_gender_' ~ r.gender, r.gender) }} · {{ r.language }}</span>
+          <span class="num sub">#{{ r.id }}</span>
+          <button type="button" class="btn use-btn" data-use="{{ r.id }}">{{ t('pipeline.tts_use') }}</button>
+          <span class="in-use">✓ {{ t('pipeline.tts_in_use') }}</span>
+        </div>
+        {% endfor %}
+      </section>
+      {% endif %}
+    </section>
+
+    <section data-subpanel="output" class="tts-grid" hidden>
+      {% for p in tts_output %}{{ field(p, v, t_or, job_id) }}{% endfor %}
+    </section>
+
+    <section data-subpanel="tuning" class="tts-grid tts-grid-4" hidden>
+      {% for p in tts_tuning %}{{ field(p, v, t_or, job_id) }}{% endfor %}
+    </section>
+  </fieldset>
+
+  {% if editable %}
+  <div class="save-bar">
+    <span class="sub grow" data-unsaved data-label-n="{{ t('pipeline.tts_unsaved') }}">{{ t('pipeline.tts_lock_note') }}</span>
+    <button class="btn" type="submit">{{ t('pipeline.tts_save') }}</button>
+    {% if selected.state.value == 'current' %}
+    <button class="btn btn-primary" type="submit" name="continue" value="1">{{ t('pipeline.tts_save_continue') }}</button>
+    {% endif %}
+  </div>
+  {% endif %}
+</form>
+<audio id="voice-player" preload="none"></audio>
+{% if can_restart %}<div class="aside-inline">{% include "pipeline/_step_details.html" %}</div>{% endif %}

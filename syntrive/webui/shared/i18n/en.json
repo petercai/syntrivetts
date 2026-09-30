@@ -1,0 +1,50 @@
+{
+  "nav.label": "Sections",
+  "nav.books": "Books",
+  "nav.section_library": "Library",
+  "nav.section_maintenance": "Maintenance",
+  "nav.queue": "Synthesis queue",
+  "nav.voices": "Voices",
+  "nav.models": "Models",
+  "nav.tools": "Tools",
+  "nav.audio_review": "Audio review",
+
+  "repo.current": "Repo",
+  "repo.switch": "Switch repo",
+  "repo.path_label": "Repo folder",
+  "repo.path_placeholder": "Folder with syntrivetts.db",
+  "repo.open": "Open repo",
+  "lang.label": "Language",
+
+  "common.dismiss": "Dismiss",
+  "common.cancel": "Cancel",
+
+  "error.title": "Something went wrong",
+  "error.title_401": "Access token required",
+  "error.title_404": "Not found",
+  "error.title_409": "Someone else is working on this",
+  "error.title_422": "Check the input",
+  "error.unexpected": "Something went wrong on the server. Quote request id {id} when reporting it; the server log has the details.",
+  "error.back": "Back to books",
+
+  "lease.unlock": "Unlock",
+  "lease.unlock_confirm": "Unlock only if that process has stopped. If it is still running, both will write to this book. Unlock now?",
+
+  "track.label": "Production steps",
+  "track.aria": "Step {n} of 9: {name}",
+  "track.finished": "Finished",
+  "state.done": "done",
+  "state.current": "current",
+  "state.later": "not started",
+
+  "step.bootstrap": "Import book",
+  "step.transcript_extract": "Extract chapters",
+  "step.transcript_merge": "Merge chapters",
+  "step.transcript_clean": "Clean text",
+  "step.transcript_text": "Make transcripts",
+  "step.transcript_review": "Review transcripts",
+  "step.tts_config": "Choose voices",
+  "step.synthesis": "Synthesize audio",
+  "step.combine": "Build audiobook",
+  "step.done": "Finished"
+}

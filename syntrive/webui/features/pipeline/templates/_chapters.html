@@ -1,0 +1,28 @@
+{% if chapters %}
+<div class="panel">
+  <table class="rows">
+    <thead>
+      <tr>
+        <th scope="col" class="right">#</th>
+        <th scope="col">{{ t('pipeline.ch_title') }}</th>
+        <th scope="col">{{ t('pipeline.ch_volume') }}</th>
+        <th scope="col" class="right">{{ t('pipeline.ch_lines') }}</th>
+        <th scope="col">{{ t('pipeline.ch_audio') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in chapters %}
+      <tr {% if not c.sequence %}class="left-out"{% endif %}>
+        <td class="right num">{{ c.sequence or '—' }}</td>
+        <td class="cjk">{{ c.title }}{% if not c.sequence and view.current_number > 6 %} <span class="sub">· {{ t('pipeline.ch_left_out') }}</span>{% endif %}</td>
+        <td class="cjk sub">{{ c.volume or '—' }}</td>
+        <td class="right num">{{ c.lines if c.lines is not none else '—' }}</td>
+        <td class="sub">{{ t('pipeline.ch_has_audio') if c.has_audio else c.synthesis_status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="empty">{{ t('pipeline.ch_empty') }}</p>
+{% endif %}

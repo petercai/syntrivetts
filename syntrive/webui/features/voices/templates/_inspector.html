@@ -1,0 +1,53 @@
+{% set v = selected.voice %}
+<aside class="panel inspector" aria-labelledby="inspector-title">
+  <div class="inspector-head">
+    {% if selected.file_present %}{{ play(v.db_id, v.name) }}{% endif %}
+    <div class="inspector-name">
+      <h2 id="inspector-title">{{ v.name }}</h2>
+      <span class="num sub ellipsis" title="{{ v.stored_path }}">{{ v.stored_path }}</span>
+    </div>
+    <a class="btn btn-quiet" href="{{ href(voice='') }}" aria-label="{{ t('voices.close') }}">✕</a>
+  </div>
+  <span class="num sub">{{ dur(v.duration_seconds) }}{% if v.sample_rate %} · {{ v.sample_rate }} Hz{% endif %}{% if v.channels %} · {{ t('voices.channels', n=v.channels) }}{% endif %}</span>
+  {% if not selected.file_present %}<div class="flash flash-error" role="status"><p>{{ t('voices.file_missing', path=v.stored_path) }}</p></div>{% endif %}
+  <form class="inspector-form" hx-post="/api/v1/voices/{{ v.db_id }}">
+    <input type="hidden" name="back" value="{{ filters|urlencode }}">
+    <div class="field-pair">
+      <label class="vfield">{{ t('voices.col_gender') }}
+        <select name="gender">
+          <option value="" {% if not v.gender %}selected{% endif %}>—</option>
+          {% for g in genders %}<option value="{{ g }}" {% if v.gender == g %}selected{% endif %}>{{ t('voices.gender_' ~ g) }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="vfield">{{ t('voices.col_lang') }}
+        <select name="language">
+          <option value="" {% if not v.language %}selected{% endif %}>—</option>
+          {% for code in language_choices %}<option value="{{ code }}" {% if v.language == code %}selected{% endif %}>{{ code }}</option>{% endfor %}
+        </select>
+      </label>
+    </div>
+    <label class="vfield">{{ t('voices.accent') }}
+      <input type="text" name="accent" value="{{ v.accent or '' }}" placeholder="{{ t('voices.accent_none') }}" autocomplete="off">
+    </label>
+    <label class="vfield">{{ t('voices.col_tags') }}
+      <input type="text" name="tags" value="{{ v.tags|join(', ') }}" placeholder="{{ t('voices.tags_hint') }}" autocomplete="off" spellcheck="false">
+    </label>
+    <label class="vfield">{{ t('voices.ref_text', file=v.name ~ '.txt') }}
+      {% include "voices/_ref_text.html" %}
+    </label>
+    {% if selected.file_present %}
+    <div class="btn-row">
+      <button class="btn" type="button" hx-post="/api/v1/voices/{{ v.db_id }}/transcribe" hx-target="#ref-text" hx-swap="outerHTML"
+              hx-indicator="#asr-spinner" hx-disabled-elt="this">{{ t('voices.asr_regenerate') if ref_text else t('voices.asr_generate') }}</button>
+      <span id="asr-spinner" class="spinner htmx-indicator" aria-hidden="true"></span>
+    </div>
+    {% endif %}
+    <div class="sub">{% if selected.used_by %}{{ t('voices.used_by') }} <span class="cjk">{{ selected.used_by|join(' · ') }}</span>{% else %}{{ t('voices.used_by_none') }}{% endif %}</div>
+    <div class="btn-row inspector-actions">
+      <button class="btn btn-primary" type="submit">{{ t('voices.save') }}</button>
+      <button class="btn" type="button" hx-post="/api/v1/voices/{{ v.db_id }}/delete" hx-include="[name='back']"
+              hx-confirm="{{ t('voices.delete_confirm', name=v.name) }}" {% if selected.in_use %}disabled{% endif %}>{{ t('voices.delete') }}</button>
+      {% if selected.in_use %}<span class="sub">{{ t('voices.delete_blocked') }}</span>{% endif %}
+    </div>
+  </form>
+</aside>

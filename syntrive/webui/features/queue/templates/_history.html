@@ -1,0 +1,19 @@
+{% if not history %}
+<p class="empty">{{ t('queue.history_empty') }}</p>
+{% else %}
+<div class="panel">
+  <div class="h-row q-head"><span>{{ t('queue.col_batch') }}</span><span>{{ t('queue.col_chapter') }}</span><span>{{ t('queue.col_started') }}</span><span class="right">{{ t('queue.col_run') }}</span><span class="right">{{ t('queue.col_audio') }}</span><span>{{ t('queue.col_outcome') }}</span><span>{{ t('queue.col_detail') }}</span></div>
+  {% for r in history %}
+  <div class="h-row">
+    <span class="num sub">#{{ r.batch_id }}</span>
+    <span class="cjk ellipsis">{{ r.chapters|join(', ') }}</span>
+    <span class="num sub">{{ r.started_at|when }}</span>
+    <span class="num right">{% if r.run_seconds is not none %}{{ (r.run_seconds // 60)|int }}:{{ '%02d'|format((r.run_seconds % 60)|int) }}{% else %}—{% endif %}</span>
+    <span class="num right">{% if r.audio_seconds %}{{ (r.audio_seconds // 60)|int }}:{{ '%02d'|format((r.audio_seconds % 60)|int) }}{% else %}—{% endif %}</span>
+    <span class="q-status h-{{ r.outcome }}">{{ t('queue.outcome_' ~ r.outcome) }}</span>
+    <span class="sub">{% if r.error %}<span class="q-error">{{ t('queue.detail_error', line=r.failed_line if r.failed_line is not none else '?', error=r.error) }}</span>{% endif %}</span>
+  </div>
+  {% endfor %}
+</div>
+{% if history|selectattr('outcome', 'equalto', 'failed')|list %}<p class="sub" style="margin-top:8px">{{ t('queue.history_failed_note') }}</p>{% endif %}
+{% endif %}

@@ -1,0 +1,69 @@
+:root {
+  color-scheme: light dark;
+
+  --ground: #ECEEF0;
+  --surface: #FFFFFF;
+  --surface-2: #F5F6F8;
+  --ink: #16212C;
+  --ink-2: #4E5A66;
+  --ink-3: #6B7682;
+  --line: #D5DAE0;
+  --line-strong: #B8C0C8;
+
+  --cue-text: #9A5A0C;
+  --cue: #F2A93B;
+  --signal: #1F5A94;
+  --signal-ink: #FFFFFF;
+  --done: #2E6E3F;
+  --track-later: #C9D0D7;
+  --danger: #A33A2F;
+  --danger-bg: #FBEDEB;
+  --warning-bg: #FDF3E3;
+
+  --sidebar-bg: #16212C;
+  --sidebar-ink: #E4E9EE;
+  --sidebar-ink-2: #9AA6B2;
+  --sidebar-line: #26313C;
+  --sidebar-hover: #1F2B37;
+
+  --font-sans: "IBM Plex Sans", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-cjk: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-20: 20px;
+  --fs-27: 27px;
+
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --radius-cover: 2px;
+  --sidebar-width: 220px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #0F151B;
+    --surface: #161E27;
+    --surface-2: #1B2530;
+    --ink: #E4E9EE;
+    --ink-2: #9AA6B2;
+    --ink-3: #7D8995;
+    --line: #26313C;
+    --line-strong: #364452;
+
+    --cue-text: #F2A93B;
+    --signal: #7CB1EA;
+    --signal-ink: #0F151B;
+    --done: #3F8F58;
+    --track-later: #33404C;
+    --danger: #E07A6E;
+    --danger-bg: #2A1A19;
+    --warning-bg: #2A2114;
+
+    --sidebar-bg: #0B1016;
+    --sidebar-line: #1C252F;
+    --sidebar-hover: #151E27;
+  }
+}

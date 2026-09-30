@@ -1,0 +1,24 @@
+<div id="cover-gallery" class="cover-gallery">
+  {% if import_result %}
+  <ul class="import-outcomes" role="status">
+    {% for o in import_result.outcomes %}
+    <li class="{{ 'ok' if o.added else 'bad' }}">
+      {% if o.added %}✓ {{ t('pipeline.meta_import_added', source=o.source) }}{% else %}✗ {{ t('pipeline.meta_import_refused', source=o.source, reason=t('pipeline.meta_import_' ~ o.error)) }}{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if meta.images %}
+  <div class="cover-grid">
+    {% for img in meta.images %}
+    <label class="cover-choice{{ ' is-missing' if not img.exists }}">
+      <input type="radio" name="cover" value="{{ img.rel_path }}" form="meta-form" {% if img.rel_path == meta.cover_rel %}checked{% endif %} {% if not img.exists %}disabled{% endif %}>
+      <img src="/api/v1/pipeline/{{ job_id }}/images/{{ img.name|urlencode }}" alt="" loading="lazy">
+      <span class="cover-name">{% if img.rel_path == meta.cover_rel %}{{ t('pipeline.meta_current_cover') }}{% else %}<span class="mono">{{ img.name }}</span>{% endif %}</span>
+    </label>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="sub">{{ t('pipeline.meta_no_images') }}</p>
+  {% endif %}
+</div>

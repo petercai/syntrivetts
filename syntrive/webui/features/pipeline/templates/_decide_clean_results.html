@@ -1,0 +1,24 @@
+<section class="clean-results" aria-labelledby="clean-results-h">
+  <h3 id="clean-results-h" class="selection-title">{{ t('pipeline.clean_results_h') }}</h3>
+  {% if results %}
+  {% set over = results|selectattr('deletion_ratio')|selectattr('deletion_ratio', 'gt', threshold)|list %}
+  <p class="sub" style="margin:0 0 8px">
+    {{ t('pipeline.clean_totals', n=results|length, raw='{:,}'.format(raw_total), clean='{:,}'.format(clean_total),
+         pct='{:.1f}'.format(100 * (raw_total - clean_total) / raw_total if raw_total else 0)) }}
+    {{ t('pipeline.clean_over', n=over|length, pct=(threshold * 100)|int) if over else t('pipeline.clean_none_over', pct=(threshold * 100)|int) }}
+  </p>
+  <div class="panel">
+    <div class="res-row res-head"><span>{{ t('pipeline.ch_title') }}</span><span class="right">{{ t('pipeline.sel_chars') }}</span><span class="right">{{ t('pipeline.clean_removed') }}</span></div>
+    {% for r in results %}
+    {% set ratio = r.deletion_ratio or 0 %}
+    <div class="res-row{{ ' is-over' if ratio > threshold }}">
+      <span class="cjk ellipsis">{{ r.title }}</span>
+      <span class="num sub right">{{ '{:,}'.format(r.raw_chars or 0) }} → {{ '{:,}'.format(r.cleaned_chars or 0) }}</span>
+      <span class="chars"><span class="num">{{ '{:.1f}'.format(100 * ratio) }} %</span><span class="bar"><span style="width: {{ [2, (48 * ratio / threshold)|round|int]|max if ratio else 0 }}px; max-width: 48px"></span></span></span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="sub">{{ t('pipeline.clean_no_results') }}</p>
+  {% endif %}
+</section>

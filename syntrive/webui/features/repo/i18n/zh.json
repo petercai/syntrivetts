@@ -1,0 +1,5 @@
+{
+  "repo.not_a_repo": "「{path}」不是 SyntriveTTS repo：其中没有 syntrivetts.db。请输入传给 syntrive.py -r 的文件夹。",
+  "repo.busy": "此 repo 中仍有步骤在运行。请在其结束后再切换。",
+  "repo.already_served": "另一个 WebUI 已在服务该 repo。请在那里打开：{url}"
+}

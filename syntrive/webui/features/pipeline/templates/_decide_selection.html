@@ -1,0 +1,37 @@
+{% if selection.available %}
+{% set kept = selection.chapters|length - selection.excluded_count %}
+{% set longest = (selection.chapters|map(attribute='char_count')|max) if selection.chapters else 1 %}
+<form class="selection" hx-post="/api/v1/pipeline/{{ job_id }}/exclusions" data-selection>
+  <div class="selection-bar">
+    <h3 class="selection-title">{{ t('pipeline.sel_title') }}</h3>
+    <span>{{ t('pipeline.sel_count_before') }} <strong class="num" data-count>{{ kept }}</strong> {{ t('pipeline.sel_count_of', total=selection.chapters|length) }}</span>
+    {% if selection.orphans %}<span class="sub">· {{ t('pipeline.sel_orphans', n=selection.orphans|length) }}</span>{% endif %}
+    <span class="grow"></span>
+    {% if not row.archived %}
+    <button class="btn" type="button" data-bulk="all">{{ t('pipeline.sel_include_all') }}</button>
+    <button class="btn" type="button" data-bulk="short" data-threshold="{{ short_chars }}">{{ t('pipeline.sel_exclude_short', n=short_chars) }}</button>
+    <button class="btn btn-primary" type="submit" data-save disabled
+            data-label="{{ t('pipeline.sel_save') }}" data-label-n="{{ t('pipeline.sel_save_n') }}">{{ t('pipeline.sel_save') }}</button>
+    {% endif %}
+  </div>
+  <div class="selection-layout">
+    <div class="panel selection-table">
+      <div class="sel-row sel-head">
+        <span><span class="visually-hidden">{{ t('pipeline.sel_include') }}</span></span><span>#</span><span>{{ t('pipeline.ch_title') }}</span><span>{{ t('pipeline.ch_volume') }}</span><span class="right">{{ t('pipeline.sel_chars') }}</span>
+      </div>
+      {% for c in selection.chapters %}
+      <div class="sel-row{{ ' is-excluded' if c.excluded }}">
+        <input type="checkbox" name="include" value="{{ c.chapter_id }}" aria-label="{{ t('pipeline.sel_include_ch', title=c.title) }}"
+               {% if not c.excluded %}checked{% endif %} data-initial="{{ '0' if c.excluded else '1' }}" data-chars="{{ c.char_count }}" {% if row.archived %}disabled{% endif %}>
+        <span class="num sub">{{ c.chapter_id[3:] }}</span>
+        <button type="button" class="linkish cjk" style="padding-left: {{ (c.heading_level - 2) * 16 }}px"
+                hx-get="/api/v1/pipeline/{{ job_id }}/chapter-text?chapter_id={{ c.chapter_id }}" hx-target="#chapter-drawer">{{ c.title or c.chapter_id }}</button>
+        <span class="sub cjk ellipsis">{{ c.volume or '—' }}</span>
+        <span class="chars"><span class="num">{{ '{:,}'.format(c.char_count) }}</span><span class="bar"><span style="width: {{ [2, (48 * c.char_count / longest)|round|int]|max if c.char_count else 0 }}px"></span></span></span>
+      </div>
+      {% endfor %}
+    </div>
+    <aside id="chapter-drawer" class="drawer" aria-live="polite"></aside>
+  </div>
+</form>
+{% endif %}

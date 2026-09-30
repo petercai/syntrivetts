@@ -1,0 +1,50 @@
+{
+  "nav.label": "分区",
+  "nav.books": "书籍",
+  "nav.section_library": "资料库",
+  "nav.section_maintenance": "维护",
+  "nav.queue": "合成队列",
+  "nav.voices": "声音",
+  "nav.models": "模型",
+  "nav.tools": "工具",
+  "nav.audio_review": "音频审阅",
+
+  "repo.current": "Repo",
+  "repo.switch": "切换 repo",
+  "repo.path_label": "Repo 文件夹",
+  "repo.path_placeholder": "包含 syntrivetts.db 的文件夹",
+  "repo.open": "打开 repo",
+  "lang.label": "语言",
+
+  "common.dismiss": "关闭",
+  "common.cancel": "取消",
+
+  "error.title": "出错了",
+  "error.title_401": "需要访问令牌",
+  "error.title_404": "未找到",
+  "error.title_409": "另一个进程正在处理",
+  "error.title_422": "请检查输入",
+  "error.unexpected": "服务器出错。报告问题时请附上请求编号 {id}；详细信息在服务日志中。",
+  "error.back": "返回书籍列表",
+
+  "lease.unlock": "解锁",
+  "lease.unlock_confirm": "只有在那个进程已经停止时才解锁。如果它仍在运行，两者会同时写入这本书。现在解锁吗？",
+
+  "track.label": "制作步骤",
+  "track.aria": "第 {n} / 9 步：{name}",
+  "track.finished": "已完成",
+  "state.done": "已完成",
+  "state.current": "当前",
+  "state.later": "未开始",
+
+  "step.bootstrap": "导入书籍",
+  "step.transcript_extract": "提取章节",
+  "step.transcript_merge": "合并章节",
+  "step.transcript_clean": "清洗文本",
+  "step.transcript_text": "生成文本稿",
+  "step.transcript_review": "审阅文本稿",
+  "step.tts_config": "设置声音",
+  "step.synthesis": "合成音频",
+  "step.combine": "生成有声书",
+  "step.done": "已完成"
+}
