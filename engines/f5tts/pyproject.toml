@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools >= 64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "syntrive-tts-engine-f5tts"
+version = "0.0.0"
+description = "Isolated Out-of-Process Worker environment for the F5-TTS TTS engine. See docs/tts/tts-synthesis-DESIGN-2026-09-02-en.md Section 3.1.2."
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "f5-tts",
+    "datasets>=3",
+]
+
+[project.optional-dependencies]
+cpu = ["torch==2.8.*", "torchaudio==2.8.*"]
+cuda = ["torch==2.8.*", "torchaudio==2.8.*"]
+
+[tool.uv]
+conflicts = [[{ extra = "cpu" }, { extra = "cuda" }]]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", extra = "cpu" }]
+torchaudio = [{ index = "pytorch-cpu", extra = "cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
