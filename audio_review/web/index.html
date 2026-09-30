@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SyntriveTTS Audio Review</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header id="app-header">
+    <button id="back-to-landing" title="Back to job list">&larr; Jobs</button>
+    <h1 id="app-title">SyntriveTTS Audio Review</h1>
+    <span id="repo-path"></span>
+    <form id="switch-repo-form">
+      <input type="text" id="repo-input" placeholder="Switch to another repo dir..." />
+      <button type="submit">Open</button>
+    </form>
+  </header>
+
+  <div id="status-banner"></div>
+  <div id="error-banner"></div>
+
+  <section id="landing-view" class="view">
+    <table>
+      <thead>
+        <tr><th>Book</th><th>Job</th><th>Status</th><th>Created</th></tr>
+      </thead>
+      <tbody id="job-rows"></tbody>
+    </table>
+  </section>
+
+  <section id="review-view" class="view hidden">
+    <div id="review-panes">
+      <nav id="chapter-tree"></nav>
+
+      <main id="center-pane">
+        <div id="waveform"></div>
+        <div id="transport">
+          <button id="restart-btn" title="Home: play this file from the beginning">&#x23EE; Restart</button>
+          <button id="play-pause-btn" title="Space">Play / Pause</button>
+          <span id="transport-time" class="time">0:00 / 0:00</span>
+          <label id="continuous-toggle-label">
+            <input type="checkbox" id="continuous-toggle" checked />
+            Continuous playback (honors ‡break‡/‡pause‡ gaps)
+          </label>
+        </div>
+        <div id="sentence-list"></div>
+      </main>
+
+      <aside id="right-pane">
+        <h3>Transcript</h3>
+        <div id="sentence-text"></div>
+
+        <h3>Metadata</h3>
+        <div id="sentence-meta"></div>
+
+        <h3>Reference Audio (A/B)</h3>
+        <div id="reference-audio-row">
+          <button id="reference-audio-btn">Play reference voice</button>
+        </div>
+
+        <h3>Review</h3>
+        <select id="issue-category"></select>
+        <div id="delete-actions">
+          <button id="delete-btn" class="danger" title="Delete key">Delete</button>
+          <span id="delete-target" class="file-name"></span>
+        </div>
+        <div id="undo-actions">
+          <button id="undo-btn" class="primary">Undo</button>
+          <span id="undo-target" class="file-name"></span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <script src="/vendor/wavesurfer.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
