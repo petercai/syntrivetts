@@ -1,5 +1,7 @@
 **/__pycache__/*
 .venv
 *.log
+*.egg-info
 *.egg-info/
+.DS_Store
 **/uv.lock

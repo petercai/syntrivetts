@@ -4,7 +4,9 @@
 
 <h1 align="center">SyntriveTTS</h1>
 
-<p align="center">A local, multi-engine neural text-to-speech production platform. It starts with complete, voice-cast audiobooks from EPUB and grows into paragraph-level speech for any text — run it on its own, drive it from an AI agent, or plug it into your own text-to-speech or text-to-video pipeline.</p>
+<p align="center">A local, multi-engine neural text-to-speech production platform. 
+Human-quality narration and multi-voice casting, from full-length audiobooks to any paragraph of text — driven from a browser WebUI, an MCP server or your AI agent. A pluggable engine architecture continuously integrates, optimises and customises leading TTS models (CosyVoice, IndexTTS, VoxCPM and more) across inference and synthesis.
+</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.14-blue" alt="Requires Python 3.14">
